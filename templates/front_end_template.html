@@ -213,14 +213,14 @@ template.helper('ci_baike', function(type, name, line) {
 
 <script>
     $(document).ready(function(){
-        /* */
+        /* Debug 
         text = "screen width : " + screen.availWidth;
         text += " n-bar : " + $('.navigation-bar-container').css('width');
         text += " logo: " + $('#logo').css('width');
         text += " s-box: " + $('.search-box').css('width');
         text += " m-bar: " + $('.menu-bar-container').css('width');
         alert(text);
-        /* */
+        */
         /* 处理ajax错误 */
         $("div").ajaxError(function(e, xhr, opt) {
             alert("Error requesting " + opt.url + ": " + xhr.status + " " + xhr.statusText);
