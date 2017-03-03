@@ -5,7 +5,6 @@ __author__ = ['"shuguangbo" <1262448230@qq.com>']
 
 import tornado.web
 from jinja2 import Environment, FileSystemLoader, TemplateNotFound
-from . import firstsection
  
 class TemplateRendering(object):
   """
@@ -16,7 +15,6 @@ class TemplateRendering(object):
     if self.settings.get('template_path', ''):
         template_dirs.append(self.settings['template_path'])
     env = Environment(loader=FileSystemLoader(template_dirs))
-    env.filters['firstsection'] = firstsection
  
     try:
         template = env.get_template(template_name)
