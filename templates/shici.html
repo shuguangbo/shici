@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}
+<title>我爱诗词 熟读唐诗三百首不会赋诗也会吟</title>
+{% endblock %}
+
+{% block css %}
+<link rel="stylesheet" href="../static/css/shici.css">
+<link rel="stylesheet" href="../static/css/flex.css">
+{% endblock %}
+
+{% block javascript %}
+<script src="../static/js/jquery-3.1.1.min.js"> </script>
+<script src="../static/js/bootstrap-3.3.7.min.js"> </script>
+{% endblock %}
+
+{% block content %}
+<!-- Poems start -->
+<div class="row">
+  {% if poem_list|length == 0 %}
+    <p> <h2>没有找到满足条件的诗词和文章！</h2></p>
+    <p> <h2>请重新选择搜索关键字</h2></p>
+  {% else %}
+    {% for poem in poem_list %}
+    <div class="col-md-4">
+        <div class="poem_tile" >
+          <div class="mask" data-toggle="modal" data-target="#poemDetail" href="get?id={{ poem['id'] }}" id="{{ poem['id'] }}">
+            <p><header> {{ poem['name'] }} <span class="author">{{ poem['author'] }}</span> </header></p>
+            {% if poem['preface']|length %}
+                 <p class="preface" {% if poem['preface']|length > 15 %} style="text-indent: 2em;" {% else %} style="text-align: center;" {% endif %} > {{ poem['preface'] }} </p>
+            {% endif %}
+            {% if poem['type'] == 'shi' %}
+              {% for num in range(0, poem['lines']|length, 2) %}
+                <p class="shi_style">
+                <span> {{ poem['lines'][num] }} </span>
+                {% if num+1 < poem['lines']|length %}
+                <span> {{ poem['lines'][num+1] }} </span>
+                {% endif %}
+                </p>
+              {% endfor %} 
+            {% else %}
+              {% for num in range(0, poem['lines']|length) %}
+                 <p class="ci_style"> {{ poem['lines'][num] }} </p>
+              {% endfor %}
+
+            {% endif %}
+          </div>
+        </div>
+    </div>
+    {% endfor %}
+  {% endif %}
+</div>
+<!-- Poem end -->
+
+{% endblock %}
+<!-- block content end -->
+

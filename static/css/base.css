@@ -1,0 +1,165 @@
+.container-fixed-width {
+    margin: 0 auto;
+    width: 80%;
+}
+
+/*
+ * 弹性框定义页面三段式布局 : 头体脚
+ */
+.page-container {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    -webkit-flex-wrap: wrap;
+    -moz-box-lines: multiple;
+    -webkit-box-lines: multiple;
+    box-lines: multiple;
+}
+/* 页面布局子项 */
+.page-item {
+    width: 100%;
+    margin: auto;
+}
+
+body {
+    font-size: 18px;
+    background-color: #FFF8DC;
+    font-family: 'Kaiti SC', 'Kaiti TC', 'Songti SC', 'Songti TC', 'Weibei SC', 'Weibei TC', 'Microsoft YaHei';
+}
+
+body.home {
+    margin-top: 50px;
+}
+
+.footer {
+    padding: 20px 0;
+    text-align: center;
+    color: #b8b8b8;
+    font-size: 14px;
+}
+.footer a,.txt {
+    color: #b8b8b8;
+    text-decoration: none;
+}
+
+.modal-header, .modal-footer {
+    background-color: #FFF8DC;
+}
+
+.modal-body {
+    background-color: #c2c8f6;
+}
+
+.icon {
+   width: 1em; height: 1em;
+   vertical-align: -0.15em;
+   fill: currentColor;
+   overflow: hidden;
+}
+
+.navigation-bar-container {
+    position: fixed;
+    width: 100%;
+    height: 50px;
+    left: 0px;
+    top: 0px;
+    display: flex;
+    padding-left: 10%;
+    padding-right: 10%;
+    background-color: GhostWhite;
+    justify-content: space-between; 
+    flex-wrap: wrap;
+    -moz-box-lines: multiple;
+    -webkit-box-lines: multiple;
+    box-lines: multiple;
+    align-items: center;
+    z-index: 1;
+}
+/*
+.navigation-bar-item {
+    margin: 10px 0px;
+}
+*/
+.navigation-bar-item a {
+    text-decoration: none;
+}
+
+.search-box {
+    border: none;
+    border-radius: 5px;
+    width: 220px;
+    height: 30px; 
+    padding: 5px;
+    margin: 5px;
+    font-size: 14px;
+    box-shadow: 0px 0px 1px 1px LightGrey;  
+}
+.search-box:focus {
+    box-shadow: 0px 0px 1px 1px #c2c8f6;  
+    border: none;
+}
+
+.menu-bar-container {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    -moz-box-lines: multiple;
+    -webkit-box-lines: multiple;
+    box-lines: multiple;
+    justify-content: space-between;
+}
+.menu-bar-item {
+    padding: 0px 1px;
+}
+
+.config-panel-container {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    -moz-box-lines: multiple;
+    -webkit-box-lines: multiple;
+    box-lines: multiple;
+    flex-direction: row;
+    justify-content: space-between; 
+    background-color: GhostWhite;
+    padding: 0px 10px 10px 10px;
+}
+
+@media only screen and (max-width: 550px) {
+.container-fixed-width {
+    width: 90%;
+}
+.navigation-bar-container {
+    padding-left: 5%;
+    padding-right: 5%;
+}
+.navigation-bar-item {
+    margin: 5px 0px;
+}
+body {
+    font-size: 16px;
+}
+}
+
+@media only screen and (max-width: 470px) {
+.container-fixed-width {
+    width: 95%;
+}
+.navigation-bar-item {
+    margin: 0px 0px;
+}
+body {
+    font-size: 16px;
+}
+.navigation-bar-container {
+    padding-left: 2.5%;
+    padding-right: 2.5%;
+}
+.navigation-bar-item {
+    margin: 5px 0px;
+}
+#logo {
+    display: none;
+}
+}

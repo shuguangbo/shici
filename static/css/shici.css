@@ -1,0 +1,155 @@
+/*
+ * 诗词搜索结果贴片容器
+ */
+.shici_container {
+    width: 100%;
+    margin-top: 20px;
+    padding-left: 10%;
+    padding-right: 10%;
+    display: flex;
+    -webkit-flex-wrap: wrap;
+    flex-wrap: wrap;
+    -moz-box-lines: multiple; 
+    -webkit-box-lines: multiple; 
+    box-lines: multiple;
+    justify-content: center;
+}
+
+/*
+ * 贴片
+ */
+.shici_tile {
+    width: 340px;
+    height: 300px;
+    margin: auto;
+    padding: 10px;
+}
+
+.shici_tile_slim {
+    width: 320px;
+    height: 70px;
+    margin: auto;
+    padding: 10px;
+}
+
+.shici_item:hover, .shici_item_slim:hover {
+    box-shadow: 0px 0px 5px 5px #f9ce17;
+}
+
+.shici_item {
+    background-color: #c2c8f6;
+    width: 320px;
+    height: 280px;
+    box-shadow: 5px 5px 5px #888888;
+    border-radius: 5px;
+    padding: 10px;
+}
+
+.shici_item_slim {
+    background-color: #c2c8f6;
+    width: 300px;
+    height: 50px;
+    box-shadow: 5px 5px 5px #888888;
+    border-radius: 5px;
+    padding: 10px;
+}
+
+.shici_item_mask {
+    width: 300px;
+    height: 260px;
+    overflow-x: hidden;
+    overflow-y: hidden;
+    text-overflow: ellipsis;
+    margin: auto;
+}
+
+.shici_item_mask_slim {
+    width: 280px;
+    height: 30px;
+    margin: auto;
+    display: flex;
+    align-items: center;
+}
+
+.slim_part1 {
+    width: 80%;
+    white-space: nowrap;
+    overflow-x: hidden;
+    overflow-y: hidden;
+    text-overflow: ellipsis;
+    color: Gray;
+}
+
+.slim_name, .slim_author {
+    color: GhostWhite;
+}
+.slim_part2 {
+    width: 20%;
+    text-align:right;
+    text-overflow: ellipsis;
+}
+.slim_line {
+    font-size: 14px;
+}
+
+.shici_item p:hover, #poem_detail_body p[data='zw']:hover {
+    background-color: GhostWhite;
+}
+
+header {
+    font-weight: normal;
+    font-size: 20px;
+    color: White;
+    text-align: center;
+}
+
+header .author {
+    font-size: 18px;
+    color: WhiteSmoke;
+}
+
+header .baike {
+    cursor: pointer;
+}
+
+.preface {
+    font-weight: normal;
+    font-size: 14px;
+    color: GhostWhite;
+}
+
+p.preface:hover {
+    background-color: WhiteSmoke;
+    color: Gray;
+}
+
+.shi_style {
+    text-align: center;
+}
+.shi_style span {
+    width: 50%;
+}
+.ci_style {
+    text-align: left;
+    text-indent: 2em;
+}
+
+#poem_tag, #poem_comment, #poem_analyse {
+    font-size: 14px;
+    color: #FFF8DC;
+}
+.comment {
+    font-size: 16px;
+    color: Gray;
+}
+.comment_key {
+    color: White;
+}
+
+p.comment span {
+    text-indent:1em;
+}
+
+.separator {
+    color: LightGrey;
+}

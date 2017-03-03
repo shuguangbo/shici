@@ -1,0 +1,56 @@
+<nav class="navigation-bar-container" flex="box:justify cross:center">
+    <div class="navigation-bar-item">
+         <span id="logo">【我爱<svg class="icon" aria-hidden="true"><use xlink:href="#icon-icon_shi"></use></svg><svg class="icon" aria-hidden="true"><use xlink:href="#icon-icon_ci"></use></svg>】</span>
+         <input id="searchkey" class="search-box" type="text" name="keywords" required="required" autofocus="autofocus" placeholder="搜索 ... 诗名、作者、诗句、体裁" onkeypress="search_key_press(event)" onfocus="this.select();" >
+<!--
+           <datalist id="keyword_list">
+               <option label="李白" value="李白" />
+               <option label="杜甫" value="杜甫" />
+               <option label="白居易" value="白居易" />
+               <option label="王维" value="王维" />
+               <option label="唐诗三百首" value="唐诗三百首" />
+               <option label="宋词三百首" value="宋词三百首" />
+               <option label="千家诗" value="千家诗" />
+               <option label="五言绝句" value="五言绝句" />
+               <option label="五言律诗" value="五言律诗" />
+               <option label="七言绝句" value="七言绝句" />
+               <option label="七言律诗" value="七言律诗" />
+           </datalist>
+-->
+    </div>
+    <div class="navigation-bar-item">
+  <div class="menu-bar-container" >
+    <div class="menu-bar-item">
+           <a href="javascript:void(0);" onclick="$('#config_panel').toggle();">设置</a>
+    </div>
+    <div class="menu-bar-item">
+           <span class="separator"> | </span>
+    </div>
+   <!--
+    <div class="menu-bar-item">
+           <a href="/" >首页</a>
+    </div>
+    <div class="menu-bar-item">
+           <span class="separator"> | </span>
+    </div>
+    -->
+    <div class="menu-bar-item">
+           <a href="javascript:void(0);" title="今日经典推荐" onclick="daily_poem();" >经典</a>
+    </div>
+    <!--
+    <div class="menu-bar-item">
+           <span class="separator"> | </span>
+    </div>
+    <div class="menu-bar-item">
+           <a href="javascript:void(0);" title="诗词闯关，正在制作中，敬请期待！" >闯关</a>
+    </div>
+    <div class="menu-bar-item">
+           <span class="separator"> | </span>
+    </div>
+    <div class="menu-bar-item">
+           <a href="javascript:void(0);" title="用户登录，正在开发中。" >登录</a>
+    </div>
+    -->
+  </div> 
+  </div>
+</nav>

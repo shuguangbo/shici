@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}
+<title>{{ escape(code) }}</title>
+{% endblock %}
+
+{% block css %}
+<link rel="stylesheet" href="../static/css/shici.css">
+{% endblock %}
+
+{% block javascript %}
+<script src="../static/js/jquery-3.1.1.min.js"> </script>
+<script src="../static/js/bootstrap-3.3.7.min.js"> </script>
+{% endblock %}
+
+{% block content %}
+<center><h2>{{escape(code)}} {{escape(reason)}}.</h2></center>
+<hr><center>{{escape(exception)}}</center>
+<hr><center>我爱诗词</center>
+{% endblock %}
+

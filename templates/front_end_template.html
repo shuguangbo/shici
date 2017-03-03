@@ -1,0 +1,377 @@
+<script>
+
+/*
+ * Global variable for poem detail - toggle pinyin display
+ */
+var poem; 
+var poem_set; 
+var last_id;
+var cnum=['\u2460','\u2461', '\u2462', '\u2463', '\u2464','\u2465','\u2466','\u2467','\u2468','\u2469','\u246a','\u246b','\u246d','\u246e','\u246f','\u2470','\u2471','\u2472','\u2473']
+
+/* 
+ * Detect return in search input box, then trigger search poem action
+ */
+function search_key_press(e) {  
+    if (!e) e = window.event;  
+    if ((e.keyCode || e.which) == 13) {  
+        search_poem();
+    }  
+}  
+
+/*
+ * 搜索结果模板渲染入口
+ */
+function search_poem() {
+    var url = "/v1/search?keywords=";
+//    var url = "http://127.0.0.1/v2/search?keywords=";
+    var obj = document.getElementById('searchkey'); 
+    var keywords = obj.value.trim(); 
+    var tip_blank = '关键字不能为空和空格';
+    var tip_chinese ='关键字必须为中文'; 
+    if ( keywords.length == 0 ) {
+        obj.value= tip_blank;
+        obj.select();
+        return;
+    } else {
+        code = keywords.charCodeAt(0);
+        isChinese = (code > 0x3400 && code < 0x9FC3) || (code > 0xF900 && code < 0xFA6A); 
+        if (!isChinese) {
+            obj.value=trans_text(tip_chinese);
+            obj.select();
+            return;
+        }
+    }
+   if ( $.t2s(keywords) == tip_blank || $.t2s(keywords) == tip_chinese) {
+        obj.select();
+        return;
+   }
+
+    url += $.t2s(keywords);
+
+    spinner_start();
+    $.getJSON(url)
+      .done(function(data) {
+          spinner_stop(); 
+          poem_set = data;
+          if ( poem_set.length == 0 ) {
+               obj.value = trans_text(obj.value + ' 没有找到。');
+               obj.select();
+               return;
+          } else {
+               obj.value = trans_text(obj.value + ' 找到' + poem_set.length + '首'); 
+               obj.select();
+          }
+          display_search_result();
+      })
+      .fail(function(jqxhr, textStatus, error) {
+          spinner_stop();
+          var err = textStatus + ": " + error;
+          console.log("Request Failed: " + err );
+      });
+}
+
+function display_search_result() 
+{
+  if ( poem_set.length == 0 ) {
+      return 0;
+  }
+
+  var html= '<div class="shici_container" >';
+  for ( i in poem_set ) {
+      poem_set[i].plines = [];
+      poem_set[i].tilestyle = tilestyle;
+      html += template('template_poem_tile', poem_set[i]);
+  }
+  html += '</div >';
+  document.getElementById('content').innerHTML = trans_text(html);
+}
+
+/*
+ * 诗词详细模板渲染入口
+ */
+function get_poem(obj) {
+
+    var id = obj.id;
+    var url = "/v1/get?id=";
+    url += id;
+
+    if ( last_id == id ) {
+        $('#poemDetail').modal({
+            keyboard: true
+        });
+       return;
+    }
+
+    spinner_start();
+    $.getJSON(url)
+      .done(function (data) {
+          console.log("Request id: " + id );
+          spinner_stop();
+          last_id = id;
+          poem = data;
+          poem.cnum = cnum;
+          var html = template('template_poem_detail', poem);
+          document.getElementById('poemdetailcontent').innerHTML = trans_text(html);
+          $('#poemDetail').modal({
+              keyboard: true
+          });          
+      })
+      .fail(function(jqxhr, textStatus, error) {
+          spinner_stop();
+          var err = textStatus + ": " + error;
+          console.log("Request Failed: " + err );
+      });
+}
+
+/*
+ * 每日经典模板渲染入口
+ */
+function daily_poem() {
+    var url = "/v1/dailypoem";
+
+    spinner_start();
+    $.getJSON(url)
+      .done(function(data) {
+        spinner_stop();
+        poem = data;
+        poem.cnum = cnum;
+        last_id = poem.id;
+        var html = template('template_poem_detail', poem);
+        document.getElementById('poemdetailcontent').innerHTML = trans_text(html);
+        $('#poemDetail').modal({
+            keyboard: true
+        });
+      })
+      .fail(function(jqxhr, textStatus, error) {
+          spinner_stop();
+          var err = textStatus + ": " + error;
+          console.log("Request Failed: " + err );
+      });
+}
+
+function update_poem_detail_body() {
+    var html= template('template_poem_detail_body', poem);
+    document.getElementById('poem_detail_body').innerHTML = trans_text(html);
+}
+
+/*
+ * 辅助函数：返回第一个标点符号前的字符串
+ */
+function firstsection(text) {
+    var separators=" ,.?，。、？";
+    var value = text;
+    for ( i in separators ) {
+        var s = separators.charAt(i);
+        value = value.split(s)[0];
+    }
+    return value;
+}
+
+/*
+ * 模板辅助函数：拼音标注
+ * text:  字符串，要标注拼音的文本
+ * ptext: 数组，每个单元为对应字符的拼音
+ */
+template.helper('pinyin', function(text, ptext) {
+
+    if ($.cookie("enablePinyin") == null || $.cookie("enablePinyin") == "undefined") {
+        $.cookie("enablePinyin", 'false');
+    }
+
+    if ( $.cookie("enablePinyin") == 'false') {
+        return text; 
+    } 
+
+    var html='<ruby>';
+    for ( index = 0; index < text.length; index++ ){
+       if ( text[index] == ' ') {
+           html +='</ruby>  <ruby>';
+       } else {
+           html +=text[index] + '<rt>' + ptext[index] + '</rt>';
+       }
+    }
+    html +='</ruby>';
+    return html;
+});
+
+/*
+ * 模板辅助函数：生成百度百科链接
+ * type: 字符串，类别：shi-诗 ci-词
+ * name: 字符串, 文章名称 
+ * line: 字符串，文章第一句 
+ */
+template.helper('ci_baike', function(type, name, line) {
+    var url = "http://baike.baidu.com/item/";
+    url += name;
+    if ( type == 'ci' ) {
+       url += '·' + firstsection(line); 
+    }
+    return url;
+});
+
+</script>
+
+<script>
+    $(document).ready(function(){
+        /* */
+        text = "screen width : " + screen.availWidth;
+        text += " n-bar : " + $('.navigation-bar-container').css('width');
+        text += " logo: " + $('#logo').css('width');
+        text += " s-box: " + $('.search-box').css('width');
+        text += " m-bar: " + $('.menu-bar-container').css('width');
+        alert(text);
+        /* */
+        /* 处理ajax错误 */
+        $("div").ajaxError(function(e, xhr, opt) {
+            alert("Error requesting " + opt.url + ": " + xhr.status + " " + xhr.statusText);
+        });
+    });
+</script>
+
+<script id="template_poem_tile" type="text/html">
+<!-- 搜索结果模板：以贴片的方式显示诗词 -->
+     <div <% if ( tilestyle == 'tile_slim' ) { %> class="shici_tile_slim" <% } else { %> class="shici_tile" <% } %> >
+       <div <% if ( tilestyle == 'tile_slim' ) { %> class="shici_item_slim" <% } else { %> class="shici_item" <% } %> >
+          <div <% if ( tilestyle == 'tile_slim' ) { %> class="shici_item_mask_slim" flex="main:left cross:center" <% } else { %> class="shici_item_mask" <% } %> id="<%=# id %>" onclick="get_poem(this);" >
+           <% if ( tilestyle == 'tile_slim' ) { %> 
+            <div class="slim_part1" ><span class="slim_name"><%=# name %></span><span class="slim_line"> <%=# lines[0] %></span></div><div class="slim_part2"><span class="slim_author"><%=# author %></span></div>
+           <% } else { %>
+            <p><header> <%=# name %> <span class="author"><%=# author %></span> </header></p>
+            <% if (preface.length) { %>
+                 <p class="preface" <% if (preface.length > 15) { %> style="text-indent: 2em;" <% } else { %> style="text-align: center;" <% } %> > <%=# preface %> </p>
+            <% } %>
+            <% if (type == 'shi') { %>
+              <% for (num = 0; num < lines.length; num++) { %>
+                <p class="shi_style">
+                <span> <%=# lines[num] %> </span>
+                </p>
+              <% } %> 
+            <% } else if (type == 'ci') { %>
+              <% for (num = 0; num< lines.length; num++) { %>
+                 <p class="ci_style"> <%=# lines[num] %> </p>
+              <% } %>
+            <% } %>
+           <% } %>
+          </div>
+        </div>
+    </div>
+</script>
+
+<script id="template_poem_detail_header" type="text/html">
+<!-- 诗词详细界面模版：页面头部功能区 显示朗读、拼音和关闭按键 -->
+    <div class="modal-header">
+        <span type="button" style="float:right;cursor:pointer;opacity:.5;" data-dismiss="modal" aria-hidden="true" title="关闭此页面">关闭</span>
+        <% var tts_text = name + ' ' + author + ' ' + preface + ' ' + lines.join(' ') %>
+        <span onclick="read_poem('<%=# tts_text %>');" type="button" style="cursor:pointer;" title="采用语音合成朗读。语音、语调、多音字、朗读连贯性等方面尚不完善，仅供参考。需要访问互联网。" id="readpoem" > 朗读 </span>
+        <span class="separator"> | </span>
+        <span type="button" style="cursor:pointer;" title="显示拼音 通过程序自动标注，多音字尚不能完全准确标注，因此标注的拼音仅供参考。" onclick="toggle_pinyin()" id="py" > 拼音 </span>
+
+    </div> <!-- modal-header -->
+</script>
+<script id="template_poem_detail_footer" type="text/html">
+<!-- 诗词详细界面模版：页面脚部功能区 显示关闭按键 -->
+    <div class="modal-footer">
+        <span style="cursor:pointer;opacity:.5;" type="button" data-dismiss="modal">关闭</span>
+    </div> <!-- end of modal-footer -->
+</script>
+
+<script id="template_poem_detail_body" type="text/html">
+<!-- 诗词详细界面模版：页面主体 显示诗词原文 -->
+              <p><header><span onclick="$('#name_comment').toggle();"><%=#pinyin(name, pname)%></span> <span class="author baike" onclick="window.open('http://baike.baidu.com/item/<%=#author %>');" title="到百度百科查看<%=#author %>的介绍" ><%=#pinyin(author, pauthor) %></span></header></p>
+              <div id='name_comment' hidden>
+                  <p class="comment">
+                  <% for ( item in comment['name']) { %>
+                      <% for ( key in comment['name'][item] ) { %>
+                        <span class="comment_key"><%=# cnum[item] %><%=# key %>: </span><span><%=# comment['name'][item][key] %></span>
+                      <% } %>
+                  <% } %>
+                  </span>
+              </div>
+              <% if (preface.length) { %>
+                 <p class="preface" data="zw" onclick="$('#preface_comment').toggle();" <% if (preface.length > 30) { %> style="text-indent: 2em;" <% } else { %> style="text-align: center;" <% } %> ><%=#pinyin(preface, ppreface) %></p>
+                 <div id='preface_comment' hidden>
+                    <p class="comment">
+                    <% for ( item in comment['preface']) { %>
+                      <% for ( key in comment['preface'][item] ) { %>
+                          <span class="comment_key"><%=# cnum[item] %><%=# key %>: </span><span><%=# comment['preface'][item][key] %></span>
+                      <% } %>
+                    <% } %>
+                    </p>
+                 </div>
+              <% } %>
+              <% for (num = 0; num < lines.length; num++) { %>
+                  <p data="zw" class=<% if (lines[num].length < 30 ) { %> "shi_style" <% } else { %> "ci_style" <% } %> onclick="$(this).next().toggle();"> 
+                  <span><%=#pinyin(lines[num], plines[num]) %> </span>
+                  </p> 
+                  <div hidden>
+                     <p class="comment"> 
+                     <% for ( item in comment['lines'][num]) { %>
+                       <% for ( key in comment['lines'][num][item] ) { %>
+                        <span class="comment_key"><%=# cnum[item] %><%=# key %>: </span><span><%=# comment['lines'][num][item][key] %></span>
+                       <% } %>
+                     <% } %>
+                     </p>
+                  </div>
+              <% } %> 
+
+</script>
+
+<script id="template_poem_detail" type="text/html">
+<!-- 诗词详细界面模版：显示诗词原文、注释、赏析和标签 -->
+<!-- poem detail start -->
+    <% include('template_poem_detail_header') %>
+
+    <div class="modal-body" >
+      <div id="pdcontainer" style="background-color:#c2c8f6;">
+        <div >
+          <p onclick="$('#poem_detail_body').toggle()" style="cursor:pointer;">原文</p>
+        </div>
+        <div id="poem_detail_body">
+        <% include('template_poem_detail_body') %>
+        </div>
+    <div >
+      <p onclick="$('#poem_comment').toggle()"  style="cursor:pointer;">注释</p>
+      <div id="poem_comment" >
+      <p class="comment">
+      <% for (item in comment['name']) { %>
+        <% for (key in comment['name'][item] ) { %>
+         <span><%=# key %>: <%=# comment['name'][item][key] %></span>
+        <% } %>
+      <% } %>
+      <% for (item in comment['preface']) { %>
+        <% for (key in comment['preface'][item] ) { %>
+         <span><%=# key %>: <%=# comment['preface'][item][key] %></span>
+        <% } %>
+      <% } %>
+      <% for (index in comment['lines']) { %>
+        <% for (item in comment['lines'][index]) { %>
+          <% for (key in comment['lines'][index][item] ) { %>
+            <span><%=# key %>: <%=# comment['lines'][index][item][key] %></span>
+          <% } %>
+        <% } %>
+      <% } %>
+      </p>
+      </div>
+    </div>
+    <div >
+      <p onclick="$('#poem_analyse').toggle()"  style="cursor:pointer;">赏析</p>
+      <div id="poem_analyse">
+       <% for (index in analyse) { %><p style="text-align:left;text-indent:2em"><%=# analyse[index] %></p><% } %>
+       <span style="cursor:pointer;text-indent:2em" onclick="window.open('<% if (url.length) { %><%=# url %><% } else { %><%=# ci_baike(type, name, lines[0]) %><% } %>');"><p>到百度百科查看详细赏析</span>
+      </div>
+    </div>
+    <div >
+      <p onclick="$('#poem_tag').toggle()" style="cursor:pointer;">标签</p>
+      <div id="poem_tag">
+      <p style="text-indent:2em"> <%=# tag.join(' ') %> </p>
+      </div>
+    </div>
+   </div>
+
+    </div > <!-- end of modal-body -->
+
+  <% include('template_poem_detail_footer') %>
+
+<!-- poem detail end -->
+
+</script>
