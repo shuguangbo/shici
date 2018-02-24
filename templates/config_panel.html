@@ -1,44 +1,39 @@
 {% block config_panel %}
-        <!-- div id="config_panel" class="panel panel-default" hidden -->
-        <div id="config_panel" hidden>
-            <!-- div class="panel-heading">设置</div -->
-            <!-- div class="panel-body" -->
-            <div class="config-panel-container">
-              <div id="config_display">
-                 <p>繁简切换: <label><span id='fj' onclick="toggle_fanjian()" >简</span></label></p>
-                 <!-- p>显示拼音 <label><input type="checkbox" value="yes"></label></p -->
-              </div>
-              <div id="" >
-                 <form action="">搜索结果显示：
-                    <input name="tilestyle" type="radio" id="tile_normal" onclick="set_tile(this);" >贴片
-                    <input name="tilestyle" type="radio" id="tile_slim" onclick="set_tile(this);" >列表
-                 </form>
-              </div>
-              <div id="config_tts">
-                <form action="" >
-                语音服务：
-                <input name="tts_vendor" type="radio" id="tts_xunfei" value="tts_xunfei" onclick="set_tts_vendor(this)";" >讯飞
-                <input name="tts_vendor" type="radio" id="tts_baidu" value="tts_baidu" onclick="set_tts_vendor(this);">百度
-                </form>
-                <div id="tts_xunfei_config" >
-                <form action="" > 发音:  
-                <input name="xfdialect" type="radio" id="aisjying" onclick="set_dialect(this);" >普通话
-                <input name="xfdialect" type="radio" id="vinn" onclick="set_dialect(this);">女童声
-                <input name="xfdialect" type="radio" id="aisxrong" onclick="set_dialect(this);">四川话
-                <input name="xfdialect" type="radio" id="xiaomei" onclick="set_dialect(this);">广东话
-                <input name="xfdialect" type="radio" id="aisxying" onclick="set_dialect(this);">陕西话
-                <input name="xfdialect" type="radio" id="aisxqiang" onclick="set_dialect(this);">湖南话
-                </form>
-                </div>
-                <div id="tts_baidu_config" hidden >
-                  <form> 发音:  
-                  <input name="bddialect" type="radio" id="bdtts0" onclick="set_dialect(this);" >女声
-                  <input name="bddialect" type="radio" id="bdtts1" onclick="set_dialect(this);" >男声
-                  <input name="bddialect" type="radio" id="bdtts3" onclick="set_dialect(this);" >度逍遥
-                  <input name="bddialect" type="radio" id="bdtts4" onclick="set_dialect(this);" >度丫丫
-                  </form>
-                </div>
-            </div>
-            </div>
+<div id="config_panel" hidden>
+    <div class="config-panel-container">
+      <div id="config_display">
+         <p>繁简切换: <label><span id='fj' onclick="toggle_fanjian()" >简</span></label></p>
+      </div>
+      <div id="" >
+         <form action="" onchange="set_tile(tilestyle.value);display_search_result(poem_set);">搜索结果显示：
+            <input name="tilestyle" type="radio" value="tile_normal">贴片
+            <input name="tilestyle" type="radio" value="tile_slim">书签
+         </form>
+      </div>
+      <div id="config_tts">
+        <form action="" onchange="set_tts_vendor(tts_vendor.value)">语音服务：
+          <input name="tts_vendor" type="radio" id="tts_xunfei" value="tts_xunfei">讯飞
+          <input name="tts_vendor" type="radio" id="tts_baidu" value="tts_baidu">百度
+        </form>
+        <div id="tts_xunfei_config" >
+          <form action="" onchange="set_dialect(xfdialect.value)"> 发音:  
+            <input name="xfdialect" type="radio" value="aisjying">普通话
+            <input name="xfdialect" type="radio" value="vinn">女童声
+            <input name="xfdialect" type="radio" value="aisxrong">四川话
+            <input name="xfdialect" type="radio" value="xiaomei">广东话
+            <input name="xfdialect" type="radio" value="aisxying">陕西话
+            <input name="xfdialect" type="radio" value="aisxqiang">湖南话
+          </form>
         </div>
+        <div id="tts_baidu_config" hidden >
+          <form onchange="set_dialect(bddialect.value)"> 发音:  
+            <input name="bddialect" type="radio" value="bdtts0">女声
+            <input name="bddialect" type="radio" value="bdtts1">男声
+            <input name="bddialect" type="radio" value="bdtts3">度逍遥
+            <input name="bddialect" type="radio" value="bdtts4">度丫丫
+          </form>
+        </div>
+    </div>
+  </div>
+</div>
 {% endblock %}

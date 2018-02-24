@@ -1,8 +1,8 @@
-<nav class="navigation-bar-container" flex="box:justify cross:center">
-    <div class="navigation-bar-item">
+<nav class="navigation-bar-container" >
+    <div class="navigation-bar-item" id="logosbox">
          <span id="logo">【我爱<svg class="icon" aria-hidden="true"><use xlink:href="#icon-icon_shi"></use></svg><svg class="icon" aria-hidden="true"><use xlink:href="#icon-icon_ci"></use></svg>】</span>
-         <input id="searchkey" class="search-box" type="text" name="keywords" required="required" autofocus="autofocus" placeholder="搜索 ... 诗名、作者、诗句、体裁" onkeypress="search_key_press(event)" onfocus="this.select();" >
-<!--
+         <input id="searchkey" class="search-box" type="text" name="keywords" required="required" autofocus="autofocus" placeholder="搜索 ... 诗名、作者、诗句、体裁" onkeypress="search_key_press(event, this)" onfocus="this.select();" >
+{#
            <datalist id="keyword_list">
                <option label="李白" value="李白" />
                <option label="杜甫" value="杜甫" />
@@ -16,41 +16,49 @@
                <option label="七言绝句" value="七言绝句" />
                <option label="七言律诗" value="七言律诗" />
            </datalist>
--->
+#}
     </div>
-    <div class="navigation-bar-item">
-  <div class="menu-bar-container" >
-    <div class="menu-bar-item">
-           <a href="javascript:void(0);" onclick="$('#config_panel').toggle();">设置</a>
-    </div>
-    <div class="menu-bar-item">
-           <span class="separator"> | </span>
-    </div>
-   <!--
-    <div class="menu-bar-item">
-           <a href="/" >首页</a>
-    </div>
-    <div class="menu-bar-item">
-           <span class="separator"> | </span>
-    </div>
-    -->
-    <div class="menu-bar-item">
-           <a href="javascript:void(0);" title="今日经典推荐" onclick="daily_poem();" >经典</a>
-    </div>
-    <!--
-    <div class="menu-bar-item">
-           <span class="separator"> | </span>
-    </div>
-    <div class="menu-bar-item">
-           <a href="javascript:void(0);" title="诗词闯关，正在制作中，敬请期待！" >闯关</a>
-    </div>
-    <div class="menu-bar-item">
-           <span class="separator"> | </span>
-    </div>
-    <div class="menu-bar-item">
-           <a href="javascript:void(0);" title="用户登录，正在开发中。" >登录</a>
-    </div>
-    -->
-  </div> 
+    <div class="navigation-bar-item" id="menu">
+      <div class="menu-bar-container" >
+        <div class="menu-bar-item">
+            <a href="javascript:void(0);" onclick="$('#config_panel').toggle();">设置</a>
+        </div>
+        <div class="menu-bar-item">
+            <span class="separator"> | </span>
+        </div>
+        <div class="menu-bar-item">
+            <a href="/" >首页</a>
+        </div>
+        <div class="menu-bar-item">
+            <span class="separator"> | </span>
+        </div>
+        <div class="menu-bar-item">
+            <a href="/test" >测试</a>
+        </div>
+        <div class="menu-bar-item">
+            <span class="separator"> | </span>
+        </div>
+        <div class="menu-bar-item">
+             <a href="javascript:void(0);" title="今日经典推荐" onclick="daily_poem();" >经典</a>
+        </div>
+        <div class="menu-bar-item">
+            <span class="separator"> | </span>
+        </div>
+        <div class="menu-bar-item">
+            <a href="javascript:void(0);" title="录入诗词" onclick="new_poem();" >录入</a>
+        </div>
+        <div class="menu-bar-item">
+            <span class="separator"> | </span>
+        </div>
+        <div class="menu-bar-item">
+            <a href="javascript:void(0);" title="诗词闯关，正在制作中，敬请期待！" >闯关</a>
+        </div>
+        <div class="menu-bar-item">
+            <span class="separator"> | </span>
+        </div>
+        <div class="menu-bar-item">
+            <a href="javascript:void(0);" title="用户登录，正在开发中。" >登录</a>
+        </div>
+      </div> 
   </div>
 </nav>

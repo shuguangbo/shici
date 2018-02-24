@@ -11,10 +11,6 @@
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-    -webkit-flex-wrap: wrap;
-    -moz-box-lines: multiple;
-    -webkit-box-lines: multiple;
-    box-lines: multiple;
 }
 /* 页面布局子项 */
 .page-item {
@@ -45,6 +41,14 @@ body.home {
 
 .modal-header, .modal-footer {
     background-color: #FFF8DC;
+    cursor: pointer;
+    opacity: 0.5;
+/*
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+*/
 }
 
 .modal-body {
@@ -70,17 +74,10 @@ body.home {
     background-color: GhostWhite;
     justify-content: space-between; 
     flex-wrap: wrap;
-    -moz-box-lines: multiple;
-    -webkit-box-lines: multiple;
-    box-lines: multiple;
     align-items: center;
     z-index: 1;
 }
-/*
-.navigation-bar-item {
-    margin: 10px 0px;
-}
-*/
+
 .navigation-bar-item a {
     text-decoration: none;
 }
@@ -104,10 +101,8 @@ body.home {
     width: 100%;
     display: flex;
     flex-wrap: wrap;
-    -moz-box-lines: multiple;
-    -webkit-box-lines: multiple;
-    box-lines: multiple;
     justify-content: space-between;
+    align-items: center;
 }
 .menu-bar-item {
     padding: 0px 1px;
@@ -117,9 +112,6 @@ body.home {
     width: 100%;
     display: flex;
     flex-wrap: wrap;
-    -moz-box-lines: multiple;
-    -webkit-box-lines: multiple;
-    box-lines: multiple;
     flex-direction: row;
     justify-content: space-between; 
     background-color: GhostWhite;

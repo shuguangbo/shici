@@ -1,11 +1,10 @@
 var fanjian = "j";               /* 缺省显示简体字 */
-var hide_pinyin = true;          /* 缺省不显示拼音 */
 var dialect = "aisjying";        /* 缺省发音为迅飞普通话 */
 var tts_vendor = "tts_xunfei";   /* 缺省语音合成使用讯飞 */
-var tilestyle = "tile_slim";   /* 缺省搜索结果以贴片方式显示 */
+var tilestyle = "tile_slim";     /* 缺省搜索结果以书签形式显示 */
+var mark = "none";               /* 缺省不标注拼音和平仄 */
 var spinner;
 var spinner_target;
-
 
 var spinner_opts = {
   lines: 9 // The number of lines to draw
@@ -31,20 +30,20 @@ var spinner_opts = {
 };
 
 function spinner_start(){
-    console.log("start spinner");
-    if ( spinner_target == undefined) {
-        spinner_target = document.getElementById('spinner');
+//    console.log("start spinner");
+    if ( typeof(spinner_target) == 'undefined') {
+        spinner_target = document.getElementById('spinner-container');
     }
-//   if ( spinner == undefined ) {
+//   if ( typeof(spinner) == 'undefined' ) {
         spinner = new Spinner(spinner_opts).spin(spinner_target);
 //   } else {
-//        spinner.spin();
+ //       spinner.spin();
 //   }
 };
 
 function spinner_stop() {
-   console.log("stop spinner");
-   if ( spinner != undefined ) {
+//   console.log("stop spinner");
+   if ( typeof(spinner) != 'undefined' ) {
        spinner.stop();
    }
 }
@@ -107,74 +106,69 @@ function display_fanjian()
         $(document.body).s2t();
     }
 }
+/* 切换平仄 */
+function toggle_pz()
+{
+    mark = mark == 'pz'?'none':'pz';
+    $.cookie("mark", mark); 
+    update_poem_detail_body();
+}
 
 /* 切换拼音 */
 function toggle_pinyin()
 {
-
-    $("rt").toggle(1500);
-    if ($.cookie("enablePinyin") == null || $.cookie("enablePinyin") == "undefined") { 
-        $.cookie("enablePinyin", 'false'); 
-    }
-    if ( $.cookie("enablePinyin") == 'false' ) {
-        $.cookie("enablePinyin", 'true');
-    } else {
-        $.cookie("enablePinyin", 'false');
-    }
-    /* display_pinyin(); */
+    mark = mark == 'pinyin'?'none':'pinyin';
+    $.cookie("mark", mark); 
     update_poem_detail_body();
 }
 
-/* 显示拼音 */
-function display_pinyin()
+/* 显示标注 */
+function get_mark()
 {
-    if ($.cookie("enablePinyin") == null || $.cookie("enablePinyin") == "undefined") { 
-        $.cookie("enablePinyin", 'false'); 
-    } 
-    if ( $.cookie("enablePinyin") == 'false') {
-        $("rt").attr("hidden", "hidden");
+    if ($.cookie("mark") == null || $.cookie("mark") == "undefined") { 
+        $.cookie("mark", 'none'); 
+        mark = 'none';
     } else {
-        $("rt").removeAttr("hidden");
-    }
+        mark = $.cookie("mark");
+    } 
 }
 
 /* 设置发音 */
-function set_dialect(obj)
+function set_dialect(value)
 {
-    if ( dialect == obj.id ) {
+    if ( dialect == value ) {
     /* 没有变化，直接返回 */
          return 0;
     }
 
-    dialect = obj.id;
+    dialect = value;
     /* 重置tts变量，以便重新获取音频数据 */
     loadedData = false;
     audio_state = 0;
 
     if ( $.cookie("tts_vendor") == 'tts_baidu' ) {
-        $.cookie("bddialect", obj.id);
+        $.cookie("bddialect", value);
     } else {
-        $.cookie("xfdialect", obj.id);
+        $.cookie("xfdialect", value);
     }
 }
 
-function set_tile(obj)
+function set_tile(value)
 {
-    if ( tilestyle == obj.id ) {
+    if ( tilestyle == value ) {
        return 0;
     }
-    tilestyle = obj.id;
-    $.cookie("tilestyle", obj.id);
-    display_search_result();
+    tilestyle = value;
+    $.cookie("tilestyle", tilestyle);
 }
 /* 设置语音合成服务提供商 */
-function set_tts_vendor(obj)
+function set_tts_vendor(value)
 {
-    if ( tts_vendor == obj.id ) {
+    if ( tts_vendor == value ) {
         return 0;
     }
-    $.cookie("tts_vendor", obj.id);
-    tts_vendor = obj.id;
+    $.cookie("tts_vendor", value);
+    tts_vendor = value;
     show_tts_vendor();
     /* 重置tts变量，以便重新获取音频数据 */
     loadedData = false;
@@ -187,15 +181,12 @@ function show_tts_vendor()
         tts_vendor = $.cookie("tts_vendor");
     }
 
-    if ( tts_vendor == 'tts_xunfei' ) 
-    {
-       document.getElementById('tts_xunfei').checked = true; 
+    if ( tts_vendor == 'tts_xunfei' ) {
+       $('#tts_xunfei').attr('checked', true); 
        $('#tts_xunfei_config').show();
        $('#tts_baidu_config').hide();
-    }
-    else if ( tts_vendor == 'tts_baidu' ) 
-    {
-       document.getElementById('tts_baidu').checked = true; 
+    } else if ( tts_vendor == 'tts_baidu' ) {
+       $('#tts_baidu').attr('checked', true); 
        $('#tts_xunfei_config').hide();
        $('#tts_baidu_config').show();
     }
@@ -212,36 +203,24 @@ function display_dialect()
         $.cookie("xfdialect", 'aisjying'); 
     }
     dialect = $.cookie("xfdialect");
-    if ( dialect == 'aisjying' ) { document.getElementById('aisjying').checked=true; };
-    if ( dialect == 'aisxrong' ) { document.getElementById('aisxrong').checked=true ;} ;
-    if ( dialect == 'xiaomei' ) { document.getElementById('xiaomei').checked=true ;} ;
-    if ( dialect == 'aisxying' ) { document.getElementById('aisxying').checked=true ;} ;
-    if ( dialect == 'xiaoqian' ) { document.getElementById('xiaoqian').checked=true ;} ;
-    if ( dialect == 'xiaoxin' ) { document.getElementById('xiaoxin').checked=true ;} ;
-    if ( dialect == 'xiaowanzi' ) { document.getElementById('xiaowanzi').checked=true ;} ;
-    if ( dialect == 'vinn' ) { document.getElementById('vinn').checked=true ;} ;
-    if ( dialect == 'aisbabyxu' ) { document.getElementById('aisbabyxu').checked=true ;} ;
+    var obj="[value='" + dialect + "']";
+    $(obj).attr('checked', true);
     dialect = $.cookie("bddialect");
-    if ( dialect == '0' ) { document.getElementById('bdtts0').checked=true;}; 
-    if ( dialect == '1' ) { document.getElementById('bdtts1').checked=true;}; 
-    if ( dialect == '3' ) { document.getElementById('bdtts3').checked=true;}; 
-    if ( dialect == '4' ) { document.getElementById('bdtts4').checked=true;}; 
+    var obj="[value='bdtts" + dialect + "']";
+    $(obj).attr('checked', true);
 }
 
 function display_tilestyle()
 {
     if ( $.cookie('tilestyle') == null || $.cookie('tilestyle') == 'undefined') {
         if ( ['tile_slim', 'tile_normal'].indexOf(tilestyle) == -1 ) {
-            $.cookie('tilestyle', 'tile_slim');
             tilestyle = 'tile_slim';
-        } else {
-            $.cookie('tilestyle', tilestyle);
-        }
-    } else {
-        tilestyle = $.cookie('tilestyle');
-    }
-    if ( tilestyle == 'tile_normal') { document.getElementById('tile_normal').checked=true;};
-    if ( tilestyle == 'tile_slim') { document.getElementById('tile_slim').checked=true;};
+        } 
+        $.cookie('tilestyle', tilestyle);
+    } 
+    tilestyle = $.cookie('tilestyle');
+    var obj = "[value='" + tilestyle + "']";
+    $(obj).attr('checked',true);
 }
 
 /* 将要搜索的关键字转换为简体*/
@@ -266,13 +245,14 @@ function trans_text(text)
 }
 
 $(function() {
-    $("#poemDetail").on("shown.bs.modal", function() {
-        display_pinyin();
+    $("#poemDetail").on("show.bs.modal", function() {
+//        console.log("show modal");
         audio_state = 0; // Need initializing audio
         loadedData = false;
     });
 
     $("#poemDetail").on("hide.bs.modal", function() {
+//        console.log("hide modal");
         stop(); //Stop play audio - call stop() in tts_demo.js
         audio_state = 0; // Need initializing audio
         $(this).removeData("bs.modal"); // remove content of Modal Dialog
@@ -280,8 +260,62 @@ $(function() {
     });
 
     $(document).ready(function() { 
-        display_fanjian(); 
-        display_tilestyle(); 
-        show_tts_vendor();
+        get_mark();          //根据cookie设置标注类型 - 拼音、平仄
+        display_fanjian();   //根据cookie设置繁简，并转换页面 
+        display_tilestyle(); //根据cookie设置搜索结果显示方式: 贴片/书签, 并显示在配置页面 
+        show_tts_vendor();   //根据cookie设置TTS服务商信息，并显示在配置页面
     });
 });
+
+pz_dict = {
+    "ā": "平",
+    "á": "平",
+    "ǎ": "仄",
+    "à": "仄",
+    "ē": "平",
+    "é": "平",
+    "ě": "仄",
+    "è": "仄",
+    "ō": "平",
+    "ó": "平",
+    "ǒ": "仄",
+    "ò": "仄",
+    "ī": "平",
+    "í": "平",
+    "ǐ": "仄",
+    "ì": "仄",
+    "ū": "平",
+    "ú": "平",
+    "ǔ": "仄",
+    "ù": "仄",
+    "ü": "平",
+    "ǘ": "平",
+    "ǚ": "仄",
+    "ǜ": "仄",
+    "ń": "平",
+    "ň": "仄",
+    "ǹ": "仄",
+    "\u1e3f": "平"
+}
+
+/*
+ * 根据拼音返回韵律
+ * 平：一、二、轻声
+ * 仄：三、四声
+ */
+function getpz(ptext) 
+{
+    var text = ptext.trim();
+    if ( text.length == 0 ) return '';
+
+   for ( i in text ) {
+       var c = text[i];
+       if ( c in pz_dict ) return pz_dict[c];
+   }
+   return "平";
+
+}
+
+function pzable(category) {
+    return (['五言律诗', '五言绝句', '七言律诗', '七言绝句'].indexOf($.t2s(category)) > -1);
+}

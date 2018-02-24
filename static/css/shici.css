@@ -7,16 +7,12 @@
     padding-left: 10%;
     padding-right: 10%;
     display: flex;
-    -webkit-flex-wrap: wrap;
     flex-wrap: wrap;
-    -moz-box-lines: multiple; 
-    -webkit-box-lines: multiple; 
-    box-lines: multiple;
     justify-content: center;
 }
 
 /*
- * 贴片
+ * 搜索结果 - 贴片容器
  */
 .shici_tile {
     width: 340px;
@@ -25,6 +21,9 @@
     padding: 10px;
 }
 
+/*
+ * 搜索结果 - 书签容器 
+ */
 .shici_tile_slim {
     width: 320px;
     height: 70px;
@@ -92,8 +91,13 @@
     font-size: 14px;
 }
 
-.shici_item p:hover, #poem_detail_body p[data='zw']:hover {
+.shici_item p:hover, #poem_body p[data='zw']:hover {
     background-color: GhostWhite;
+}
+
+.show_poem_container {
+    background-color: #c2c8f6;
+    padding: 10px;
 }
 
 header {
@@ -110,7 +114,7 @@ header .author {
 
 header .baike {
     cursor: pointer;
-}
+} 
 
 .preface {
     font-weight: normal;
@@ -152,4 +156,64 @@ p.comment span {
 
 .separator {
     color: LightGrey;
+}
+
+#poemdetailcontent {
+    border-radius: 5px;
+}
+
+#editor_container {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+.editor_sub_container {
+   width: 100%;
+   padding: 5px;
+   display: flex;
+   flex-direction: row;
+   justify-content: center;
+   align-items: center;
+}
+
+.editor_item_left {
+   width: 15%;
+   padding: 5px;
+}
+
+.editor_item_right {
+   width: 100%;
+   padding: 5px;
+}
+
+.editor_item_display {
+   width: 100%;
+   display: flex;
+   flex-direction: column;
+   justify-content: center;
+   flex-wrap: wrap;
+   align-items: center;
+}
+
+.editor_item_type {
+   width: 100%;
+   display: flex;
+   flex-direction: row;
+   justify-content: center;
+   align-items: center;
+}
+
+.item_output {
+   width: 100%;
+   display: flex;
+   flex-direction: column;
+   justify-content: center;
+   align-items: center;
+}
+
+.output_item {
+   padding: 5px;
 }

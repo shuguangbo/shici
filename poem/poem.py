@@ -45,11 +45,11 @@ class Shici():
     def __init__(self) :
         """ 加载pypinyin的本地短语库，并将短语加入jieba
         """
-        phrase = json.load(open(config.data_path+'/shici_phrase.json', 'r'), encoding='utf-8')
+        phrase = json.load(open(config.phrase_file, 'r'), encoding='utf-8')
         load_phrases_dict(phrase, style=u'default')
         for key in phrase.keys() : jieba.add_word(key)
         ### Load comment dict
-        self.comment = json.load(open(config.data_path+'/shici_comment.json', 'r'), encoding='utf-8')
+        self.comment = json.load(open(config.comment_file, 'r'), encoding='utf-8')
         for key in self.comment.keys() : jieba.add_word(key)
 
     def parse_comment(self, poem) :
@@ -66,10 +66,17 @@ class Shici():
             if poem['comment'].has_key(key) : continue
             elif self.comment.has_key(key) : poem['comment'][key] = self.comment[key]
             
-    def load_repo(self, name='shici_repo.json') :
+    def load_repo(self, name=config.repo_file) :
         """ 将待久化到文件中的诗词库装载到内存中
         """
         self.poem_set = json.load(open(name, 'r'), encoding='utf-8')
+
+    def persist_repo(self, name=config.repo_file) :
+        """ 将待久化到文件中的诗词库装载到内存中
+        """
+        fp = open(name, 'w')
+        json.dump(self.poem_set, fp, ensure_ascii=False, encoding='utf-8')
+        fp.close()
 
     def find_keyword(self, poem, keyword):
         """ 在诗句中查找关键字
@@ -144,6 +151,35 @@ class Shici():
             
         return tex, poem
 
+    def pinyin(self, text) :
+        """ 将一段文字转换为拼音，以JSON格式返回 
+            返回数组中的每一个元素为对应文字的拼音，多音字以数组列出所有拼音
+            中心 [['zhōng', 'zhòng'], ['xīn']]
+        """
+        len = len(text.strip());
+        if (len == 0) : return []
+        return json.dumps(pinyin(text, heteronym=True), ensure_ascii=False, encoding='utf-8')
+
+    def save_poem(self, poem={}, type='json') :
+        """ 获得从客户端传来的诗词并保存到文件中
+        """
+        print "poem id: %s" % poem['id']
+        id = poem['id']
+        self.poem_set[id] = poem
+        self.persist_repo()
+        
+        return True
+
+    def del_poem(self, id='') :
+        """ 删除指定的诗词
+        """
+        print "debug - id: %s" % id
+        if id in self.poem_set :
+            del self.poem_set[id]
+            print "found and delete id: %s" % id
+            self.persist_repo()
+        
+        return True
 #### End of class Shici ####
 
 sc = Shici()

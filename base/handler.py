@@ -86,3 +86,11 @@ class HomeHandler(BaseHandler):
         self.render_html("home.html")
 
 
+class TestHandler(BaseHandler):
+    """ 测试页面
+    """
+    def __init__(self, application, request, **kwargs):
+        super(TestHandler, self).__init__(application, request, **kwargs)
+
+    def get(self):
+        self.render_html("test.html")

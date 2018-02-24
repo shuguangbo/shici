@@ -29,7 +29,7 @@
             {% if poem['preface']|length %}
                  <p class="preface" {% if poem['preface']|length > 15 %} style="text-indent: 2em;" {% else %} style="text-align: center;" {% endif %} > {{ poem['preface'] }} </p>
             {% endif %}
-            {% if poem['type'] == 'shi' %}
+            {% if poem['type'] == '诗' %}
               {% for num in range(0, poem['lines']|length, 2) %}
                 <p class="shi_style">
                 <span> {{ poem['lines'][num] }} </span>

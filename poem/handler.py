@@ -5,6 +5,7 @@ __author__ = ['"shuguangbo" <1262448230@qq.com>']
 
 import logging
 import traceback
+import json
 from base.handler import BaseHandler
 from poem import sc
 
@@ -44,7 +45,7 @@ class DailyPoemHandler(BaseHandler):
 
 
 ###############################################################################
-### REST API - 每日经典
+### REST API 
 ###############################################################################
 class restDailyPoemHandler(BaseHandler):
     def __init__(self, application, request, **kwargs):
@@ -78,3 +79,37 @@ class restGetPoemHandler(BaseHandler):
             self.write_error(404, reason="Internal Error")
         else:
             self.write(poem)
+
+class restSavePoemHandler(BaseHandler):
+    def __init__(self, application, request, **kwargs):
+        super(restSavePoemHandler, self).__init__(application, request, **kwargs)
+
+    def post(self, *args, **kwargs):
+        poem = json.loads(self.get_argument("art", ""), encoding='utf-8')
+        print "json load : "
+        print poem
+        try :
+            ret = sc.save_poem(poem=poem, type='json')
+        except Exception as e:
+            import traceback
+            stack = traceback.format_exc()
+            logging.error("save poem details failed - error:%s cause:%s"
+                          % ( e, stack))
+            self.write_error(404, reason="Internal Error")
+#        else:
+#            self.write(ret)
+
+class restDelPoemHandler(BaseHandler):
+    def __init__(self, application, request, **kwargs):
+        super(restDelPoemHandler, self).__init__(application, request, **kwargs)
+
+    def post(self, *args, **kwargs):
+        id = self.get_argument("id", "")
+        try :
+            ret = sc.del_poem(id=id)
+        except Exception as e:
+            import traceback
+            stack = traceback.format_exc()
+            logging.error("save poem details failed - error:%s cause:%s"
+                          % ( e, stack))
+            self.write_error(404, reason="Internal Error")

@@ -414,8 +414,10 @@ template.helper('ci_baike', function(type, name, line) {
 <div class="page-item">
    <!-- header/navigation bar start -->
    <nav class="navigation-bar-container" flex="main:left box:justify">
-    <div class="navigation-bar-item" style="width:70%">
+    <div class="navigation-bar-item" >
          <span id="logo">【我爱<svg class="icon" aria-hidden="true"><use xlink:href="#icon-icon_shi"></use></svg><svg class="icon" aria-hidden="true"><use xlink:href="#icon-icon_ci"></use></svg>】</span>
+    </div>
+    <div class="navigation-bar-item" >
          <input id="searchkey" class="search-box" type="text" list="keyword_list" name="keywords" required="required" autofocus="autofocus" placeholder="搜索 ... 诗名、作者、诗句、体裁" onkeypress="search_key_press(event)" onfocus="this.select();" >
            <datalist id="keyword_list">
                <option label="李白" value="李白" />
@@ -431,8 +433,8 @@ template.helper('ci_baike', function(type, name, line) {
                <option label="七言律诗" value="七言律诗" />
            </datalist>
     </div>
-    <div class="navigation-bar-item" style="width:30%">
-  <div class="menu-bar-container" flex="main:right">
+    <div class="navigation-bar-item" >
+  <div class="menu-bar-container" flex="main:right cross:center">
     <div class="menu-bar-item">
        <a href="#" onclick="$('#config_panel').toggle();">设置</a>
     </div>

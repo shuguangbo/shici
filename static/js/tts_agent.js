@@ -36,11 +36,14 @@ var audioPalyUrl = "http://h5.xf-yun.com/audioStream/";
   * reconnection        客户端是否支持断开重连
   * reconnectionDelay   重连支持的延迟时间   
   */
-var session = new IFlyTtsSession({
+var session = new IFlyTtsSession();
+/*
+{
 'url'                : 'ws://h5.xf-yun.com/tts.do',
 'reconnection'       : true,
 'reconnectionDelay'  : 500000
-});
+}
+*/
 
 /* 音频播放对象 */
 window.iaudio = new Audio();
