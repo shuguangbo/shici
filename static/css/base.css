@@ -43,15 +43,20 @@ body.home {
     background-color: #FFF8DC;
     cursor: pointer;
     opacity: 0.5;
-/*
+}
+
+.editor-header, .editor-footer {
+    background-color: #FFF8DC;
+    cursor: pointer;
+    opacity: 0.5;
     display: flex;
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
-*/
+    padding: 15px;
 }
 
-.modal-body {
+.modal-body, .editor-body {
     background-color: #c2c8f6;
 }
 

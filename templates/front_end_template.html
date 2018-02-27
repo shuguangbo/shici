@@ -94,26 +94,16 @@ function get_poem(obj) {
     url += id;
 
     if ( last_id == id ) {
-        $('#poemDetail').modal({
-            keyboard: true
-        });
+       show_poem_detail(poem);
        return;
     }
 
     spinner_start();
     $.getJSON(url)
       .done(function (data) {
-          console.log("Request id: " + id );
           spinner_stop();
-          last_id = id;
           poem = data;
-          poem.mark = pzable(poem.category)?mark:(mark=='pz'?'none':mark);
-          poem.cnum = cnum;
-          var html = template('template_poem_detail', poem);
-          document.getElementById('poemdetailcontent').innerHTML = trans_text(html);
-          $('#poemDetail').modal({
-              keyboard: true
-          });          
+          show_poem_detail(data);
       })
       .fail(function(jqxhr, textStatus, error) {
           spinner_stop();
@@ -133,20 +123,24 @@ function daily_poem() {
       .done(function(data) {
         spinner_stop();
         poem = data;
-        poem.mark = pzable(poem.category)?mark:(mark=='pz'?'none':mark);
-        poem.cnum = cnum;
-        last_id = poem.id;
-        var html = template('template_poem_detail', poem);
-        document.getElementById('poemdetailcontent').innerHTML = trans_text(html);
-        $('#poemDetail').modal({
-            keyboard: true
-        });
+        show_poem_detail(data);
       })
       .fail(function(jqxhr, textStatus, error) {
           spinner_stop();
           var err = textStatus + ": " + error;
           console.log("Request Failed: " + err );
       });
+}
+
+function show_poem_detail(poem) {
+    poem.mark = pzable(poem.category)?mark:(mark=='pz'?'none':mark);
+    poem.cnum = cnum;
+    last_id = poem.id;
+    var html = template('template_poem_detail', poem);
+    $('#poemdetailcontent').html(trans_text(html));
+    $('#poemDetail').modal({
+        keyboard: true
+    });
 }
 
 function update_poem_detail_body() {
@@ -245,45 +239,39 @@ template.helper('pz', function(category) {
 
 {# 诗词详细界面模版：模态框容器模版 #}
 <script id="template_poem_detail" type="text/html">
-    <% include('template_poem_detail_header') %>
-    <% include('template_poem_detail_body') %>
-    <% include('template_poem_detail_footer') %>
+  <div class="modal-header">   <% include('template_poem_detail_header') %> </div> 
+  <div class="show_poem_body"> <% include('template_poem_detail_body')   %> </div>
+  <div class="modal-footer">   <% include('template_poem_detail_footer') %> </div> 
 </script>
 
 {# 诗词详细界面模版：模态框头部功能区 显示朗读、拼音和关闭按键 #} 
 <script id="template_poem_detail_header" type="text/html">
-<div class="modal-header">
-    <span type="button" style="float:right;" data-dismiss="modal" aria-hidden="true" title="关闭此页面">关闭</span>
-    <% var tts_text = name + ' ' + author + ' ' + preface + ' ' + lines.join(' ') %>
-    <span onclick="read_poem('<%=# tts_text %>');" type="button" style="cursor:pointer;" title="朗读是通过语音合成方式完成，需要访问互联网。语音、语调、多音字、朗读连贯性等方面尚待完善，仅供参考。" id="readpoem" > 朗读 </span>
-    <span class="separator"> | </span>
-    <span type="button" style="cursor:pointer;" title="显示拼音 通过程序自动标注，多音字尚不能完全准确标注，因此标注的拼音仅供参考。" onclick="toggle_pinyin()" id="py" > 拼音 </span>
-   <% if ( pz(category) ) { %>
-    <span class="separator"> | </span>
-    <span type="button" style="cursor:pointer;" title="根据拼音声调自动标注平仄，仅供参考。" onclick="toggle_pz()" id="pz" > 平仄 </span>
-   <% } %>
-   <span class="separator"> | </span>
-   <span type="button" style="cursor:pointer;" title="编辑诗词。" onclick="edit_poem(poem);" id="edit" > 编辑 </span>
-   <span class="separator"> | </span>
-   <span type="button" style="cursor:pointer;" title="删除诗词。" onclick="del_poem(poem.id);" id="delete" > 删除 </span>
-</div> 
+  <span type="button" style="float:right;" data-dismiss="modal" aria-hidden="true" title="关闭此页面">关闭</span>
+  <% var tts_text = name + ' ' + author + ' ' + preface + ' ' + lines.join(' ') %>
+  <span onclick="read_poem('<%=# tts_text %>');" type="button" style="cursor:pointer;" title="朗读是通过语音合成方式完成，需要访问互联网。语音、语调、多音字、朗读连贯性等方面尚待完善，仅供参考。" id="readpoem" > 朗读 </span>
+  <span class="separator"> | </span>
+  <span type="button" style="cursor:pointer;" title="显示拼音 通过程序自动标注，多音字尚不能完全准确标注，因此标注的拼音仅供参考。" onclick="toggle_pinyin()" id="py" > 拼音 </span>
+ <% if ( pz(category) ) { %>
+  <span class="separator"> | </span>
+  <span type="button" style="cursor:pointer;" title="根据拼音声调自动标注平仄，仅供参考。" onclick="toggle_pz()" id="pz" > 平仄 </span>
+ <% } %>
+ <span class="separator"> | </span>
+ <span type="button" style="cursor:pointer;" title="编辑诗词。" onclick="edit_poem(poem);" id="edit" > 编辑 </span>
+ <span class="separator"> | </span>
+ <span type="button" style="cursor:pointer;" title="删除诗词。" onclick="del_poem(poem.id);" id="delete" > 删除 </span>
 </script>
 
 {# 诗词详细界面模版：模态框尾部功能区 显示关闭按键 #}
 <script id="template_poem_detail_footer" type="text/html">
-<div class="modal-footer">
     <span type="button" data-dismiss="modal">关闭</span>
-</div> 
 </script>
 
 {# 诗词详细界面模版：模态框内容主界面 #}
 <script id="template_poem_detail_body" type="text/html">
-<div class="show_poem_container">
-    <div class="show_poem_item"> <% include('template_poem_body') %> </div>
-    <div class="show_poem_item"> <% include('template_poem_comment') %> </div>
-    <div class="show_poem_item"> <% include('template_poem_analyse') %> </div>
-    <div class="show_poem_item"> <% include('template_poem_tag') %> </div>
-</div>
+  <div class="show_poem_item"> <% include('template_poem_body') %> </div>
+{#  <div class="show_poem_item"> <% include('template_poem_comment') %> </div> #}
+  <div class="show_poem_item"> <% include('template_poem_analyse') %> </div>
+  <div class="show_poem_item"> <% include('template_poem_tag') %> </div>
 </script>
 
 {# 诗词详细界面模版：内容主界面 - 诗词原文 #} 
@@ -299,8 +287,10 @@ template.helper('pz', function(category) {
 
 <div id='comment_name' hidden>
   <p class="comment">
-   <% var data = 'name' in comment?{comment:comment['name'],cnum:cnum}:{comment:[],cnum:cnum}; %>
+  <% for (var index in comment['name']) { %>
+   <% var data = 'name' in comment?{comment:comment['name'][index],cnum:cnum}:{comment:[],cnum:cnum}; %>
    <% include('template_comment_item', data) %>
+  <% } %>
   </p>
 </div>
 
@@ -308,14 +298,16 @@ template.helper('pz', function(category) {
   <p class="preface" data="zw" onclick="$('#comment_preface').toggle();" <% if (preface.length > 30) { %> style="text-indent: 2em;" <% } else { %> style="text-align: center;" <% } %> ><%=#mark_shici(preface, ppreface, mark, false) %></p>
   <div id='comment_preface' hidden>
     <p class="comment">
-   <% var data = 'preface' in comment?{comment:comment['preface'],cnum:cnum}:{comment:[],cnum:cnum}; %>
+   <% for (var index in comment['preface']) { %>
+   <% var data = 'preface' in comment?{comment:comment['preface'][index],cnum:cnum}:{comment:[],cnum:cnum}; %>
    <% include('template_comment_item', data) %>
+   <% } %>
     </p>
   </div>
 <% } %>
 
 <% for (var num in lines) { %>
-  <p data="zw" class=<% if (lines[num].length < 30 ) { %> "shi_style" <% } else { %> "ci_style" <% } %> onclick="$('#lines-comment-<%=# num %>').toggle();"> 
+  <p data="zw" class=<% if (lines[num].length < 30 ) { %> "shi_style" <% } else { %> "ci_style" <% } %> onclick="$('#lines-comment-<%=# num %>').toggle();" > 
     <span><%=#mark_shici(lines[num], plines[num], mark, true) %> </span>
   </p> 
   <div id="lines-comment-<%=# num %>" hidden>
@@ -333,10 +325,14 @@ template.helper('pz', function(category) {
  <div onclick="$('#poem_comment').toggle()"  style="cursor:pointer;">注释</div>
  <div id="poem_comment" >
   <p class="comment">
-   <% var data = 'name' in comment?{comment:comment['name'],cnum:cnum}:{comment:[],cnum:cnum}; %>
+  <% for (var index in comment['name']) { %>
+   <% var data = 'name' in comment?{comment:comment['name'][index],cnum:cnum}:{comment:[],cnum:cnum}; %>
    <% include('template_comment_item', data) %>
-   <% var data = 'preface' in comment?{comment:comment['preface'],cnum:cnum}:{comment:[],cnum:cnum}; %>
+  <% } %>
+  <% for (var index in comment['preface']) { %>
+   <% var data = 'preface' in comment?{comment:comment['preface'][index],cnum:cnum}:{comment:[],cnum:cnum}; %>
    <% include('template_comment_item', data) %>
+  <% } %>
   <% for (var index in comment['lines']) { %>
    <% var data = 'lines' in comment?{comment:comment['lines'][index], cnum:cnum }:{comment:[],cnum:cnum}; %>
    <% include('template_comment_item', data) %>

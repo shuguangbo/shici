@@ -95,8 +95,12 @@
     background-color: GhostWhite;
 }
 
-.show_poem_container {
+.show_poem_body, .editor_body {
     background-color: #c2c8f6;
+    padding: 10px;
+}
+.show_poem_item {
+    width: 100%;
     padding: 10px;
 }
 
@@ -162,7 +166,7 @@ p.comment span {
     border-radius: 5px;
 }
 
-#editor_container {
+.editor-body {
     width: 100%;
     display: flex;
     flex-direction: column;
@@ -170,6 +174,9 @@ p.comment span {
     align-items: flex-start;
 }
 
+.editor_poem_item {
+    width: 100%;
+}
 .editor_sub_container {
    width: 100%;
    padding: 5px;

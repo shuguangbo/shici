@@ -49,7 +49,8 @@ class Shici():
         load_phrases_dict(phrase, style=u'default')
         for key in phrase.keys() : jieba.add_word(key)
         ### Load comment dict
-        self.comment = json.load(open(config.comment_file, 'r'), encoding='utf-8')
+#        self.comment = json.load(open(config.comment_file, 'r'), encoding='utf-8')
+        self.load_comment()
         for key in self.comment.keys() : jieba.add_word(key)
 
     def parse_comment(self, poem) :
@@ -71,12 +72,25 @@ class Shici():
         """
         self.poem_set = json.load(open(name, 'r'), encoding='utf-8')
 
+    def load_comment(self, name=config.comment_file) :
+        """ 将待久化到文件中的注释库装载到内存中
+        """
+        self.comment = json.load(open(name, 'r'), encoding='utf-8')
+
     def persist_repo(self, name=config.repo_file) :
-        """ 将待久化到文件中的诗词库装载到内存中
+        """ 将内存中的诗词库待久化到文件中
         """
         fp = open(name, 'w')
         json.dump(self.poem_set, fp, ensure_ascii=False, encoding='utf-8')
         fp.close()
+
+    def persist_comment(self, name=config.comment_file) :
+        """ 将内存中的注释库待久化到文件中
+        """
+        fp = open(name, 'w')
+        json.dump(self.comment, fp, ensure_ascii=False, encoding='utf-8')
+        fp.close()
+        
 
     def find_keyword(self, poem, keyword):
         """ 在诗句中查找关键字
@@ -163,11 +177,22 @@ class Shici():
     def save_poem(self, poem={}, type='json') :
         """ 获得从客户端传来的诗词并保存到文件中
         """
-        print "poem id: %s" % poem['id']
+#        print "poem id: %s" % poem['id']
         id = poem['id']
         self.poem_set[id] = poem
         self.persist_repo()
+
+        """ 更新注释库 """
+        for item in ['name', 'preface', 'lines'] :
+            for index in range(0, len(poem['comment'][item])) :
+                for num in range(0, len(poem['comment'][item][index])) :
+                    for key in poem['comment'][item][index][num] :
+                       if key in self.comment : continue
+                       self.comment[key] = poem['comment'][item][index][num][key] 
+#                       print "new key: " + key + " value: " + poem['comment'][item][index][num][key]
         
+        self.persist_comment()
+
         return True
 
     def del_poem(self, id='') :
