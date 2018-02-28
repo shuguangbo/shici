@@ -22,16 +22,16 @@
       <div class="page-container">
         <div id="spinner-container"></div>
         <div class="page-item">
-          {% include 'navigation_bar.html' %}
+          {% include 'template_navigation_bar.html' %}
           <div class="container-fixed-width">
-            {% include 'config_panel.html' %} 
+            {% include 'template_config_panel.html' %} 
           </div>
         </div>
         <div class="page-item">    
           <div id="content" >
              {% block content %} {% endblock %}
           </div>
-          {% include 'modal_dialog.html' %}
+          {% include 'template_modal_dialog.html' %}
         </div>
         <div class="page-item">    
           <div class="footer">
