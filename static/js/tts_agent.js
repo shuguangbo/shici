@@ -106,16 +106,16 @@ function tts_read_xunfei(content, vcn){
 };
 
 /*
- * poem : string in format - name author preface line1 line2 line3 ...
+ * work : string in format - name author preface line1 line2 line3 ...
  */
-function tts_read_poem(poem){
+function tts_read_work(work){
 
     var text = new Array();
     var i = 0;
     var sec = 400;
 
-    for (i=0; i < (poem.length/sec) ; i++) {
-        text.push(poem.slice(i*sec, (i+1)*sec));
+    for (i=0; i < (work.length/sec) ; i++) {
+        text.push(work.slice(i*sec, (i+1)*sec));
     } 
 
     window.iaudio.addEventListener('ended', playEndedHandler, false);
@@ -133,7 +133,7 @@ function tts_read_poem(poem){
         if ( text.length == 0 ) {
             audio_state = 0;
             console.log('Ended');
-            document.getElementById('readpoem').innerHTML=trans_text(" 朗读 ");
+            document.getElementById('readwork').innerHTML=trans_text(" 朗读 ");
             return 0;
         } else {
             content = text.shift();
@@ -145,13 +145,13 @@ function tts_read_poem(poem){
         console.log('Playing ...');
         spinner_stop();
         audio_state = 1;
-        document.getElementById('readpoem').innerHTML=trans_text(" 暂停 ");
+        document.getElementById('readwork').innerHTML=trans_text(" 暂停 ");
     };
 
     function playPauseHandler() {
         console.log('Paused');
         audio_state = 2;
-        document.getElementById('readpoem').innerHTML=trans_text(" 朗读 ");
+        document.getElementById('readwork').innerHTML=trans_text(" 朗读 ");
     };
     function playLoadedDataHandler() {
         loadedData = true;

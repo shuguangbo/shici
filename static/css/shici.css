@@ -91,15 +91,15 @@
     font-size: 14px;
 }
 
-.shici_item p:hover, #poem_body p[data='zw']:hover {
+.shici_item p:hover, #work_body p[data='zw']:hover {
     background-color: GhostWhite;
 }
 
-.show_poem_body, .editor_body {
+.show_work_body, .editor_body {
     background-color: #c2c8f6;
     padding: 10px;
 }
-.show_poem_item {
+.show_work_item {
     width: 100%;
     padding: 10px;
 }
@@ -142,7 +142,7 @@ p.preface:hover {
     text-indent: 2em;
 }
 
-#poem_tag, #poem_comment, #poem_analyse {
+#work_tag, #work_comment, #work_analyse {
     font-size: 14px;
     color: #FFF8DC;
 }
@@ -162,7 +162,7 @@ p.comment span {
     color: LightGrey;
 }
 
-#poemdetailcontent {
+#workdetailcontent {
     border-radius: 5px;
 }
 
@@ -174,7 +174,7 @@ p.comment span {
     align-items: flex-start;
 }
 
-.editor_poem_item {
+.editor_work_item {
     width: 100%;
 }
 .editor_sub_container {

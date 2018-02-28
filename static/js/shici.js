@@ -49,17 +49,17 @@ function spinner_stop() {
 }
 
 /* 通过语音合成朗读诗词 
-   js/tts_agent.js 中定义了相关参数和函数，如audio_state/loadedData/start()/stop()/tts_read_poem()
-   poem: string format - name author preface line1 line2 line3 ...
+   js/tts_agent.js 中定义了相关参数和函数，如audio_state/loadedData/start()/stop()/tts_read_work()
+   work: string format - name author preface line1 line2 line3 ...
 */
-function read_poem(poem)
+function read_work(work)
 {
     if ( audio_state == 0 ) {
     /* 初始状态，如果合成的音频数据已经加载则开始朗读，否则调用相应tts获取音频数据后朗读 */
         if ( loadedData ) {
             start();
         } else {
-            tts_read_poem(poem);
+            tts_read_work(work);
         }
     } else if ( audio_state == 1 ) {
     /* 朗读状态，则暂停朗读 */
@@ -71,10 +71,10 @@ function read_poem(poem)
 }
 
 /* Not in use yet */
-function read_poem_v1(poem)
+function read_work_v1(work)
 {
-   var text = poem['name'] + " " + poem['author'] + " " + poem['preface'] + poem['lines'].join(' ');
-   read_poem(text);
+   var text = work['name'] + " " + work['author'] + " " + work['preface'] + work['lines'].join(' ');
+   read_work(text);
 }
 
 /* 繁简体切换 */
@@ -111,7 +111,7 @@ function toggle_pz()
 {
     mark = mark == 'pz'?'none':'pz';
     $.cookie("mark", mark); 
-    update_poem_detail_body();
+    update_work_detail_body();
 }
 
 /* 切换拼音 */
@@ -119,7 +119,7 @@ function toggle_pinyin()
 {
     mark = mark == 'pinyin'?'none':'pinyin';
     $.cookie("mark", mark); 
-    update_poem_detail_body();
+    update_work_detail_body();
 }
 
 /* 显示标注 */
@@ -245,13 +245,13 @@ function trans_text(text)
 }
 
 $(function() {
-    $("#poemDetail").on("show.bs.modal", function() {
+    $("#workDetail").on("show.bs.modal", function() {
 //        console.log("show modal");
         audio_state = 0; // Need initializing audio
         loadedData = false;
     });
 
-    $("#poemDetail").on("hide.bs.modal", function() {
+    $("#workDetail").on("hide.bs.modal", function() {
 //        console.log("hide modal");
         stop(); //Stop play audio - call stop() in tts_demo.js
         audio_state = 0; // Need initializing audio

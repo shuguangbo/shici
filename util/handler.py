@@ -7,7 +7,7 @@ import logging
 import traceback
 import pypinyin
 from pypinyin import pinyin, load_phrases_dict, lazy_pinyin, slug, TONE
-from poem.poem import sc
+from work.work import sc
 import json
 import jieba
 
