@@ -2,21 +2,21 @@
 <div id="config_panel" hidden>
     <div class="config-panel-container">
       <div id="config_display">
-         <p>繁简切换: <label><span id='fj' onclick="toggle_fanjian()" >简</span></label></p>
+         <p>繁简切换: <label><span id='fj' >简</span></label></p>
       </div>
       <div id="" >
-         <form action="" onchange="set_tile(tilestyle.value);display_search_result(work_set);">搜索结果显示：
+         <form >搜索结果显示：
             <input name="tilestyle" type="radio" value="tile_normal">贴片
             <input name="tilestyle" type="radio" value="tile_slim">书签
          </form>
       </div>
       <div id="config_tts">
-        <form action="" onchange="set_tts_vendor(tts_vendor.value)">语音服务：
+        <form >语音服务：
           <input name="tts_vendor" type="radio" id="tts_xunfei" value="tts_xunfei">讯飞
           <input name="tts_vendor" type="radio" id="tts_baidu" value="tts_baidu">百度
         </form>
         <div id="tts_xunfei_config" >
-          <form action="" onchange="set_dialect(xfdialect.value)"> 发音:  
+          <form > 发音:  
             <input name="xfdialect" type="radio" value="aisjying">普通话
             <input name="xfdialect" type="radio" value="vinn">女童声
             <input name="xfdialect" type="radio" value="aisxrong">四川话
@@ -26,7 +26,7 @@
           </form>
         </div>
         <div id="tts_baidu_config" hidden >
-          <form onchange="set_dialect(bddialect.value)"> 发音:  
+          <form > 发音:  
             <input name="bddialect" type="radio" value="bdtts0">女声
             <input name="bddialect" type="radio" value="bdtts1">男声
             <input name="bddialect" type="radio" value="bdtts3">度逍遥
@@ -36,4 +36,30 @@
     </div>
   </div>
 </div>
+
+<script>
+$(document).ready(function(){
+    // 设置面板事件处理器
+//    $("#config_panel").mouseout(function(){ $(this).hide(); });
+    $("#fj").mouseover(function(){ toggle_fanjian(); });
+    $("input[name='tilestyle']").mouseover(function(){
+        this.checked = true;
+        set_tile(this.value);
+        display_search_result(work_set);
+    });
+    $("input[name='tts_vendor']").mouseover(function(){
+        this.checked = true;
+        set_tts_vendor(this.value);
+    });
+    $("input[name='xfdialect']").mouseover(function(){
+        this.checked = true;
+        set_dialect(this.value);
+        read_work("欢迎来到我爱诗词！");
+    });
+    $("input[name='bddialect']").mouseover(function(){
+        this.checked = true;
+        set_dialect(this.value);
+    });
+});
+</script>
 {% endblock %}

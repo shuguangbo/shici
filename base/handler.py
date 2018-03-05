@@ -63,7 +63,7 @@ class BaseHandler(tornado.web.RequestHandler, TemplateRendering):
         reason = kwargs.get('reason', "Server Error")
         exception = kwargs.get('exception', "")
 
-        return self.render_string("error.html", code=str(status_code),
+        return self.render_template("error.html", code=str(status_code),
                                   reason=str(reason), exception=str(exception))
 
 
@@ -81,9 +81,10 @@ class HomeHandler(BaseHandler):
     """
     def __init__(self, application, request, **kwargs):
         super(HomeHandler, self).__init__(application, request, **kwargs)
-
+    @tornado.web.asynchronous
     def get(self):
         self.render_html("home.html")
+        self.finish()
 
 
 class TestHandler(BaseHandler):
@@ -92,5 +93,7 @@ class TestHandler(BaseHandler):
     def __init__(self, application, request, **kwargs):
         super(TestHandler, self).__init__(application, request, **kwargs)
 
+    @tornado.web.asynchronous
     def get(self):
         self.render_html("test.html")
+        self.finish()

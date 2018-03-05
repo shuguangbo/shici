@@ -60,11 +60,11 @@ var pr_xunfei = ["aisjying", "aisxrong", "xiaomei", "aisxying", "xiaoqian", "vin
 /***********************************************local Variables**********************************************************/
 function tts_read(content) {
      spinner_start();
-     if ( $.cookie("tts_vendor") == 'tts_baidu' ) {
-         var vcn = $.cookie("bddialect");
+     if ( localStorage.getItem("tts_vendor") == 'tts_baidu' ) {
+         var vcn = localStorage.getItem("bddialect");
          tts_read_baidu(content, vcn);
      } else {
-         var vcn = $.cookie("xfdialect");
+         var vcn = localStorage.getItem("xfdialect");
          tts_read_xunfei(content, vcn);
     }
 }

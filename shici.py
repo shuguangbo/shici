@@ -15,8 +15,7 @@ from tornado import gen
 from tornado.options import define, options, parse_command_line
 
 from base.handler import HomeHandler, ErrorHandler, TestHandler
-from search.handler import restSearchWorkHandler
-from work.handler import restClassicWorkHandler, restGetWorkHandler, restSaveWorkHandler, restDelWorkHandler
+from work.handler import restClassicWorkHandler, restGetWorkHandler, restSaveWorkHandler, restDelWorkHandler, restSearchWorkHandler
 from util.handler import restGetPinyinHandler, restGetCommentHandler
 
 from work.work import sc
@@ -28,12 +27,7 @@ sys.setdefaultencoding('utf-8')
 define("port", default=8888, help="run on the given port", type=int)
 define("debug", default=False, help="run in debug mode")
 
-sc.load_repo(config.repo_file)
-
-def main():
-    parse_command_line()
-    app = tornado.web.Application(
-        [
+handlers = [
             (r'/', HomeHandler),
             (r'/test', TestHandler),
             (r'/v1/search', restSearchWorkHandler),
@@ -44,13 +38,19 @@ def main():
             (r'/v1/save', restSaveWorkHandler),
             (r'/v1/del', restDelWorkHandler),
             (r'/.*', ErrorHandler),
-            ],
-        cookie_secret = "3c4ce17055943c777753574a71b370e3",
-        static_path = config.static_path,
-        template_path = config.template_path,
-        xsrf_cookies = True,
-        debug = options.debug,
-        )
+            ]
+settings = {
+        "cookie_secret": "3c4ce17055943c777753574a71b370e3",
+        "static_path": config.static_path,
+        "template_path": config.template_path,
+        "xsrf_cookies": True,
+        "debug": options.debug
+}
+
+def main():
+    parse_command_line()
+    sc.load_repo(config.repo_file)
+    app = tornado.web.Application(handlers, **settings)
     app.listen(options.port)
     tornado.ioloop.IOLoop.current().start()
 

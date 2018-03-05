@@ -17,8 +17,8 @@ class restGetPinyinHandler(BaseHandler):
     def __init__(self, application, request, **kwargs):
         super(restGetPinyinHandler, self).__init__(application, request, **kwargs)
 
-    def get(self, *args, **kwargs):
-        text = self.get_argument("text", "")
+    def post(self, *args, **kwargs):
+        text = json.loads(self.get_argument("text", ""), encoding='utf-8')
         try :
             pinyin = self.pinyin(text)
         except Exception as e:
@@ -49,8 +49,8 @@ class restGetCommentHandler(BaseHandler):
     def __init__(self, application, request, **kwargs):
         super(restGetCommentHandler, self).__init__(application, request, **kwargs)
 
-    def get(self, *args, **kwargs):
-        text = self.get_argument("text", "")
+    def post(self, *args, **kwargs):
+        text = json.loads(self.get_argument("text", ""), encoding='utf-8')
         try :
             comment = self.comment(text)
         except Exception as e:
@@ -68,7 +68,7 @@ class restGetCommentHandler(BaseHandler):
             [{关键字1：注释1},{关键字2：注释2},...]
         """
         text_length = len(text.strip());
-        print "input: %d %s" % (text_length, text)
+#        print "input: %d %s" % (text_length, text)
 
         clist = []; 
 
@@ -80,5 +80,5 @@ class restGetCommentHandler(BaseHandler):
                     clist.append({key: sc.comment[key]})
 
         str = json.dumps(clist, ensure_ascii=False, encoding='utf-8')
-        print "output: %s" % str
+#        print "output: %s" % str
         return str

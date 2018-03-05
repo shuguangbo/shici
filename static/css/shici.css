@@ -146,6 +146,9 @@ p.preface:hover {
     font-size: 14px;
     color: #FFF8DC;
 }
+.work_show_menu_item {
+    cursor: pointer;
+}
 .comment {
     font-size: 16px;
     color: Gray;
@@ -186,17 +189,7 @@ p.comment span {
    align-items: center;
 }
 
-.editor_item_left {
-   width: 15%;
-   padding: 5px;
-}
-
-.editor_item_right {
-   width: 100%;
-   padding: 5px;
-}
-
-.editor_item_display {
+.editor_item, .editor_item_output, .editor_item_input {
    width: 100%;
    display: flex;
    flex-direction: column;

@@ -1,7 +1,7 @@
 <nav class="navigation-bar-container" >
     <div class="navigation-bar-item" id="logosbox">
          <span id="logo">【我爱<svg class="icon" aria-hidden="true"><use xlink:href="#icon-icon_shi"></use></svg><svg class="icon" aria-hidden="true"><use xlink:href="#icon-icon_ci"></use></svg>】</span>
-         <input id="searchkey" class="search-box" type="text" name="keywords" required="required" autofocus="autofocus" placeholder="搜索 ... 诗名、作者、诗句、体裁" onkeypress="search_key_press(event, this)" onfocus="this.select();" >
+         <input id="search-box" class="search-box" type="text" name="keywords" required="required" autofocus="autofocus" placeholder="搜索 ... 诗名、作者、诗句、体裁" onkeypress="search_key_press(event, this)" onfocus="this.select();" >
 {#
            <datalist id="keyword_list">
                <option label="李白" value="李白" />
@@ -20,45 +20,61 @@
     </div>
     <div class="navigation-bar-item" id="menu">
       <div class="menu-bar-container" >
-        <div class="menu-bar-item">
-            <a href="javascript:void(0);" onclick="$('#config_panel').toggle();">设置</a>
-        </div>
-        <div class="menu-bar-item">
+        {# <div class="menu-bar-item"> #}
+           {# <a href="javascript:void(0);" onclick="$('#config_panel').toggle();">设置</a> #}
+            <a href="javascript:void(0);" id="config">设置</a>
+        {# </div> #}
+        {# <div class="menu-bar-item"> #}
             <span class="separator"> | </span>
-        </div>
-        <div class="menu-bar-item">
+        {# </div> #}
+        {# <div class="menu-bar-item"> #}
             <a href="/" >首页</a>
-        </div>
-        <div class="menu-bar-item">
+        {# </div> #}
+        {# <div class="menu-bar-item"> #}
             <span class="separator"> | </span>
-        </div>
-        <div class="menu-bar-item">
+        {# </div> #}
+        {# <div class="menu-bar-item"> #}
             <a href="/test" >测试</a>
-        </div>
-        <div class="menu-bar-item">
+        {# </div> #}
+        {# <div class="menu-bar-item"> #}
             <span class="separator"> | </span>
-        </div>
-        <div class="menu-bar-item">
-             <a href="javascript:void(0);" title="今日经典推荐" onclick="classic_work();" >经典</a>
-        </div>
-        <div class="menu-bar-item">
+        {# </div> #}
+        {# <div class="menu-bar-item"> #}
+             {# <a href="javascript:void(0);" title="经典推荐" onclick="classic_work();" >经典</a> #}
+             <a href="javascript:void(0);" title="经典推荐" id="classic_work" >经典</a>
+        {# </div> #}
+        {# <div class="menu-bar-item"> #}
             <span class="separator"> | </span>
-        </div>
-        <div class="menu-bar-item">
-            <a href="javascript:void(0);" title="录入诗词" onclick="new_work();" >录入</a>
-        </div>
-        <div class="menu-bar-item">
+        {# </div> #}
+        {# <div class="menu-bar-item"> #}
+            {# <a href="javascript:void(0);" title="录入诗词" onclick="new_work();" >录入</a> #}
+            <a href="javascript:void(0);" title="录入诗词" id="new_work" >录入</a>
+        {# </div> #}
+        {# <div class="menu-bar-item"> #}
             <span class="separator"> | </span>
-        </div>
-        <div class="menu-bar-item">
+        {# </div> #}
+        {# <div class="menu-bar-item"> #}
             <a href="javascript:void(0);" title="诗词闯关，正在制作中，敬请期待！" >闯关</a>
-        </div>
-        <div class="menu-bar-item">
+        {# </div> #}
+        {# <div class="menu-bar-item"> #}
             <span class="separator"> | </span>
-        </div>
-        <div class="menu-bar-item">
+        {# </div> #}
+        {# <div class="menu-bar-item"> #}
             <a href="javascript:void(0);" title="用户登录，正在开发中。" >登录</a>
-        </div>
+        {# </div> #}
       </div> 
   </div>
 </nav>
+
+<script>
+$(document).ready(function(){
+    // 添加民航菜单各项的事件处理器
+    $('#search-box').focus(function(){ this.select(); });
+    $('#search-box').mouseover(function(){ $(this).focus(); });
+    $('#search-box').change(function(event){ search_key_press(event, this); }); 
+    $('#config').click(function(){ $('#config_panel').toggle() });
+    $('#classic_work').click(function(){ classic_work(); });
+    $('#new_work').click(function(){ new_work(); });
+
+});
+</script>

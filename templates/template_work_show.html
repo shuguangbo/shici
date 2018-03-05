@@ -17,7 +17,7 @@ function search_key_press(e, obj) {
 
 // 搜索结果模板渲染入口
 function search_work(obj) {
-    var url = "/v1/search?keywords=";
+    var url = "/v1/search";
     var keywords = obj.value.trim(); 
     var tip_blank = '关键字不能为空白';
     var tip_chinese ='关键字必须为中文'; 
@@ -39,12 +39,8 @@ function search_work(obj) {
         return;
    }
 
-    url += $.t2s(keywords);
-
     spinner_start();
-    $.getJSON(url)
-      .done(function(data) {
-          spinner_stop(); 
+    $.post(url, {_xsrf:$.cookie('_xsrf'),keywords:JSON.stringify($.t2s(keywords))}, function(data, status) {
           work_set = data;
           if ( work_set.length == 0 ) {
                obj.value = trans_text(obj.value + ' 没有匹配记录。');
@@ -55,13 +51,13 @@ function search_work(obj) {
                obj.select();
           }
           display_search_result(work_set);
-      })
-      .fail(function(jqxhr, textStatus, error) {
-          spinner_stop();
-          var err = textStatus + ": " + error;
-          console.log("Request Failed: " + err );
-      });
+    }, 'json').fail(function(jqXHR, textStatus, errorThrown) {
+        console.log("搜索失败: " + textStatus + ": " + errorThrown );
+    }).always(function() {
+        spinner_stop();
+    });
 }
+
 
 function display_search_result(work_set) {
   if ( work_set.length == 0 ) {
@@ -76,14 +72,14 @@ function display_search_result(work_set) {
   }
   html += '</div >';
   $('#content').html(trans_text(html));
+  // 添加搜索结果事件处理器 
+  search_result_event_handler();
 }
 
 //  诗词详细模板渲染入口
-function get_work(obj) {
-
-    var id = obj.id;
-    var url = "/v1/get?id=";
-    url += id;
+function get_work(id) {
+//    var id = obj.id;
+    var url = "/v1/get";
 
     if ( last_id == id ) {
        show_work_detail(work);
@@ -91,35 +87,28 @@ function get_work(obj) {
     }
 
     spinner_start();
-    $.getJSON(url)
-      .done(function (data) {
-          spinner_stop();
-          work = data;
-          show_work_detail(data);
-      })
-      .fail(function(jqxhr, textStatus, error) {
-          spinner_stop();
-          var err = textStatus + ": " + error;
-          console.log("Request Failed: " + err );
-      });
+    $.post(url, {_xsrf:$.cookie('_xsrf'), id:JSON.stringify(id)}, function(data, status) {
+        work = data;
+        show_work_detail(work);
+    }, 'json').fail(function(jqXHR, textStatus, errorThrown) {
+        console.log("获取作品详细信息失败: " + textStatus + ": " + errorThrown );
+    }).always(function() {
+        spinner_stop();
+    });
 }
 
 // 经典模板渲染入口
 function classic_work() {
     var url = "/v1/classicwork";
-
     spinner_start();
-    $.getJSON(url)
-      .done(function(data) {
-        spinner_stop();
+    $.post(url, {_xsrf:$.cookie('_xsrf'), id:JSON.stringify("")}, function(data, status) {
         work = data;
-        show_work_detail(data);
-      })
-      .fail(function(jqxhr, textStatus, error) {
-          spinner_stop();
-          var err = textStatus + ": " + error;
-          console.log("Request Failed: " + err );
-      });
+        show_work_detail(work);
+    }, 'json').fail(function(jqXHR, textStatus, errorThrown) {
+        console.log("获取经典作品失败: " + textStatus + ": " + errorThrown );
+    }).always(function() {
+        spinner_stop();
+    });
 }
 
 function show_work_detail(work) {
@@ -131,6 +120,8 @@ function show_work_detail(work) {
     $('#workDetail').modal({
         keyboard: true
     });
+    // 添加作品显示区事件处理器
+    show_event_handler();
 }
 
 function update_work_detail_body() {
@@ -151,6 +142,64 @@ function firstsection(text) {
         value = value.split(s)[0];
     }
     return value;
+}
+
+function search_result_event_handler() {
+    work_set.forEach(function(item, index) {
+        var id = "#" + item.id;
+        //console.log("为诗词" + item.id + "添加事件处理器");
+        // 从服务器拿到作品详细信息并在显示区显示
+        $(id).on('click', function() { get_work(item.id);});
+    });
+}
+
+// 作品显示区事件处理器
+function show_event_handler(){
+    // 作品显示区头部事件处理器
+    show_header_event_handler();
+    // 作品显示区中部事件处理器
+    show_body_event_handler();
+    // 作品显示区尾部事件处理器
+    //show_footer_event_handler();
+}
+
+function show_header_event_handler() {
+    // 朗读作品
+    $('#readwork').on('click', function() {
+        // work是全局变量，保存当前作品显示区内作品的信息
+        var tts = [work.name, work.author, work.preface, work.lines.join(' ')].join(' '); 
+        read_work(tts);
+    });
+    // 显示拼音
+    $('#py').on('click', function() { toggle_pinyin(); });
+    // 显示平仄
+    $('#pz').on('click', function() { toggle_pz(); });
+    // 编辑作品 - work是全局变量保存当前选中的作品
+    $('#edit').on('click', function() { edit_work(work); });
+    // 删除作品
+    $('#delete').on('click', function() { del_work(work.id); });
+}
+
+function show_body_event_handler() {
+   // 显示隐藏作品正文
+   $('#work_body_prompt').on('click', function() { $('#work_body').toggle(); });
+   // 显示隐藏作品名称注释
+   $('#work_name').on('click', function() { $('#name_comment').toggle(); });
+   // 查看作者生平介绍
+   $('#work_author').on('click', function() { window.open('http://baike.baidu.com/item/' + work.author ); });
+   // 显示隐藏作品序言
+   $('#work_preface').on('click', function() { $('#preface_comment').toggle(); });
+   // 显示隐藏作品正文每一行的注释
+   work.lines.forEach(function(item, index) {
+       var pid = "#lines-" + index, cid = "#lines-" + index + "-comment";
+       $(pid).on('click', function() { $(cid).toggle(); });
+   });
+   // 显示隐藏作品注释（包含所有注释）
+   $('#work_comment_prompt').on('click', function() { $('#work_comment').toggle(); });
+   // 显示隐藏作品赏析
+   $('#work_analyse_prompt').on('click', function() { $('#work_analyse').toggle(); });
+   // 显示隐藏作品标签
+   $('#work_tag_prompt').on('click', function() { $('#work_tag').toggle(); }); 
 }
 
 /*
@@ -204,7 +253,7 @@ template.helper('pz', function(category) {
 <script id="template_work_tile" type="text/html">
 <div <% if ( tilestyle == 'tile_slim' ) { %> class="shici_tile_slim" <% } else { %> class="shici_tile" <% } %> >
   <div <% if ( tilestyle == 'tile_slim' ) { %> class="shici_item_slim" <% } else { %> class="shici_item" <% } %> >
-  <div <% if ( tilestyle == 'tile_slim' ) { %> class="shici_item_mask_slim" flex="main:left cross:center" <% } else { %> class="shici_item_mask" <% } %> id="<%=# id %>" onclick="get_work(this);" >
+  <div <% if ( tilestyle == 'tile_slim' ) { %> class="shici_item_mask_slim" flex="main:left cross:center" <% } else { %> class="shici_item_mask" <% } %> id="<%=# id %>" >
     <% if ( tilestyle == 'tile_slim' ) { %> 
       <div class="slim_part1" ><span class="slim_name"><%=# name %></span><span class="slim_line"> <%=# lines[0] %></span></div><div class="slim_part2"><span class="slim_author"><%=# author %></span></div>
     <% } else { %>
@@ -236,19 +285,19 @@ template.helper('pz', function(category) {
 
 {# 诗词详细界面模版：模态框头部功能区 显示朗读、拼音和关闭按键 #} 
 <script id="template_work_detail_header" type="text/html">
-  <span type="button" style="float:right;" data-dismiss="modal" aria-hidden="true" title="关闭此页面">关闭</span>
+  <span  style="float:right;" data-dismiss="modal" aria-hidden="true" title="关闭此页面">关闭</span>
   <% var tts_text = name + ' ' + author + ' ' + preface + ' ' + lines.join(' ') %>
-  <span onclick="read_work('<%=# tts_text %>');" type="button" style="cursor:pointer;" title="朗读是通过语音合成方式完成，需要访问互联网。语音、语调、多音字、朗读连贯性等方面尚待完善，仅供参考。" id="readwork" > 朗读 </span>
+  <span   class="work_show_menu_item" title="朗读是通过语音合成方式完成，需要访问互联网。语音、语调、多音字、朗读连贯性等方面尚待完善，仅供参考。" id="readwork" > 朗读 </span>
   <span class="separator"> | </span>
-  <span type="button" style="cursor:pointer;" title="显示拼音 通过程序自动标注，多音字尚不能完全准确标注，因此标注的拼音仅供参考。" onclick="toggle_pinyin()" id="py" > 拼音 </span>
+  <span  class="work_show_menu_item" title="显示拼音 通过程序自动标注，多音字尚不能完全准确标注，因此标注的拼音仅供参考。" id="py" > 拼音 </span>
  <% if ( pz(category) ) { %>
   <span class="separator"> | </span>
-  <span type="button" style="cursor:pointer;" title="根据拼音声调自动标注平仄，仅供参考。" onclick="toggle_pz()" id="pz" > 平仄 </span>
+  <span  class="work_show_menu_item" title="根据拼音声调自动标注平仄，仅供参考。" id="pz" > 平仄 </span>
  <% } %>
  <span class="separator"> | </span>
- <span type="button" style="cursor:pointer;" title="编辑诗词。" onclick="edit_work(work);" id="edit" > 编辑 </span>
+ <span  class="work_show_menu_item" title="编辑诗词。"  id="edit" > 编辑 </span>
  <span class="separator"> | </span>
- <span type="button" style="cursor:pointer;" title="删除诗词。" onclick="del_work(work.id);" id="delete" > 删除 </span>
+ <span  class="work_show_menu_item" title="删除诗词。"  id="delete" > 删除 </span>
 </script>
 
 {# 诗词详细界面模版：模态框尾部功能区 显示关闭按键 #}
@@ -267,15 +316,15 @@ template.helper('pz', function(category) {
 {# 诗词详细界面模版：内容主界面 - 诗词原文 #} 
 <script id="template_work_body" type="text/html">
 <div id="work_body_container">
-  <div onclick="$('#work_body').toggle()" style="cursor:pointer;">原文</div>
+  <div id="work_body_prompt" style="cursor:pointer;">原文</div>
   <div id="work_body"> <% include('template_work_detail_body_zw') %> </div>
 </div>
 </script>
 
 <script id="template_work_detail_body_zw" type="text/html">
-<p><header><span onclick="$('#comment_name').toggle();"><%=#mark_shici(name, pname, mark, false)%></span> <span class="author baike" onclick="window.open('http://baike.baidu.com/item/<%=#author %>');" title="到百度百科查看<%=#author %>的介绍" ><%=#mark_shici(author, pauthor, mark, false) %></span></header></p>
+<p><header><span id="work_name"><%=#mark_shici(name, pname, mark, false)%></span> <span id="work_author" class="author baike" title="到百度百科查看<%=#author %>的介绍" ><%=#mark_shici(author, pauthor, mark, false) %></span></header></p>
 
-<div id='comment_name' hidden>
+<div id='name_comment' hidden>
   <p class="comment">
   <% for (var index in comment['name']) { %>
    <% var data = 'name' in comment?{comment:comment['name'][index],cnum:cnum}:{comment:[],cnum:cnum}; %>
@@ -285,8 +334,8 @@ template.helper('pz', function(category) {
 </div>
 
 <% if (preface.length) { %>
-  <p class="preface" data="zw" onclick="$('#comment_preface').toggle();" <% if (preface.length > 30) { %> style="text-indent: 2em;" <% } else { %> style="text-align: center;" <% } %> ><%=#mark_shici(preface, ppreface, mark, false) %></p>
-  <div id='comment_preface' hidden>
+  <p id="work_preface" class="preface" data="zw" <% if (preface.length > 30) { %> style="text-indent: 2em;" <% } else { %> style="text-align: center;" <% } %> ><%=#mark_shici(preface, ppreface, mark, false) %></p>
+  <div id='preface_comment' hidden>
     <p class="comment">
    <% for (var index in comment['preface']) { %>
    <% var data = 'preface' in comment?{comment:comment['preface'][index],cnum:cnum}:{comment:[],cnum:cnum}; %>
@@ -297,10 +346,10 @@ template.helper('pz', function(category) {
 <% } %>
 
 <% for (var num in lines) { %>
-  <p data="zw" class=<% if (lines[num].length < 30 ) { %> "shi_style" <% } else { %> "ci_style" <% } %> onclick="$('#lines-comment-<%=# num %>').toggle();" > 
+  <p id="lines-<%=# num %>" data="zw" class=<% if (lines[num].length < 30 ) { %> "shi_style" <% } else { %> "ci_style" <% } %>  > 
     <span><%=#mark_shici(lines[num], plines[num], mark, true) %> </span>
   </p> 
-  <div id="lines-comment-<%=# num %>" hidden>
+  <div id="lines-<%=# num %>-comment" hidden>
     <p class="comment"> 
    <% var data = 'lines' in comment?{comment:comment['lines'][num],cnum:cnum}:{comment:[],cnum:cnum}; %>
    <% include('template_comment_item', data) %>
@@ -312,7 +361,7 @@ template.helper('pz', function(category) {
 {# 诗词详细界面模版：内容主界面 - 注释 #} 
 <script id="template_work_comment" type="text/html">
 <div id="work_comment_container">
- <div onclick="$('#work_comment').toggle()"  style="cursor:pointer;">注释</div>
+ <div id="work_comment_prompt" style="cursor:pointer;">注释</div>
  <div id="work_comment" >
   <p class="comment">
   <% for (var index in comment['name']) { %>
@@ -344,10 +393,10 @@ template.helper('pz', function(category) {
 {# 诗词详细界面模版：内容主界面 - 赏析 #} 
 <script id="template_work_analyse" type="text/html">
 <div id="work_analyse_container">
-  <div onclick="$('#work_analyse').toggle()"  style="cursor:pointer;">赏析</div>
+  <div id="work_analyse_prompt" style="cursor:pointer;">赏析</div>
   <div id="work_analyse">
      <% for (var index in analyse) { %><div style="text-align:left;text-indent:2em"><%=# analyse[index] %></div><% } %>
-    <p style="cursor:pointer;text-indent:2em" onclick="window.open('<% if (url.length) { %><%=# url %><% } else { %><%=# ci_baike(type, name, lines[0]) %><% } %>');">到百度百科查看详细赏析</p>
+{#    <p style="cursor:pointer;text-indent:2em" onclick="window.open('<% if (url.length) { %><%=# url %><% } else { %><%=# ci_baike(type, name, lines[0]) %><% } %>');">到百度百科查看详细赏析</p> #}
   </div>
 </div>
 </script>
@@ -355,7 +404,7 @@ template.helper('pz', function(category) {
 {# 诗词详细界面模版：内容主界面 - 标签 #} 
 <script id="template_work_tag" type="text/html">
 <div id="work_tag_container">
-  <div onclick="$('#work_tag').toggle()" style="cursor:pointer;">标签</div>
+  <div id="work_tag_prompt" style="cursor:pointer;">标签</div>
   <div id="work_tag" style="text-indent:2em"><%=# tag.join(' ') %></div>
 </div>
 </script>

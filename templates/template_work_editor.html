@@ -12,30 +12,26 @@ var g_chinese_char=/[\u3400-\u9FFF\uF900-\uFAFF]/;
 var g_nonchinese_char=/[^\u3400-\u9FFF\uF900-\uFAFF]/; 
 var g_nonchinese_all=/[^\u3400-\u9FFF\uF900-\uFAFF]+/g; 
 
-/*
- * 创建新作品入口
- */
+// 创建新作品入口
 function new_work() {
     var work = {};
     work = blank_work(); 
     init_cache(work);
-    return show_work_editor(work);
+    show_work_editor(work);
+    editor_event_handler();
 }
 
-/*
- * 编辑作品入口
- */
+// 编辑作品入口
 function edit_work(work) {
     init_cache(work);
     show_work_editor(work);
-    $.each(['name', 'author', 'preface', 'lines'], function(index, key) {
+    ['name', 'author', 'preface', 'lines'].forEach(function(key, index) {
         clean_get_show(key, key=='lines'?work[key].join('\n'):work[key]);
     }); 
+    editor_event_handler();
 }
 
-/*
- * 显示作品编辑器界面
- */
+// 显示作品编辑器界面
 function show_work_editor(work) {
   var param = set_param(work);
   var html = template('template_editor', param);
@@ -45,10 +41,7 @@ function show_work_editor(work) {
   });
 }
 
-
-/*
- * 保存当前编辑作品到服务器上的作品库中
- */
+// 保存当前编辑作品到服务器上的作品库中
 function save_new() {
     var url = "/v1/save";
     var work = restore_cache(dp=false); 
@@ -60,31 +53,29 @@ function save_new() {
     work.id = md5(work.name + work.author + work.lines[0]);
 //    console.log("work id: " + work.id); 
 //    console.log(work);
-    url +="?_xsrf=" + $.cookie('_xsrf');
-    $.post(url, {art:JSON.stringify(work)}, function(data, status) {
+    spinner_start();
+    $.post(url, {_xsrf:$.cookie('_xsrf'), work:JSON.stringify(work)}, function(data, status) {
 //        console.log("data: \n" + data + "\nstatus: " + status);
         $('#workDetail').modal('hide');
+    }, 'json').fail(function(jqXHR, textStatus, errorThrown) {
+        console.log("保存作品详失败: " + textStatus + ": " + errorThrown );
+    }).always(function() {
+        spinner_stop();
     });
 }
 
-/*
- * 检查作品必须条目是否满足 
- */
+// 检查作品必须条目是否满足 
 function check_work(work) {
     return work.name.trim().length?(work.author.trim().length?(work.type.trim().length?(work.lines.length?(''):"请录入作品正文"):"请录入作品分类"):"请录入作者姓名"):"请录入作品名称"; 
 }
 
-/*
- * 作品编辑器头部 - 预览/编辑作品功能的统一入口
- */
+// 作品编辑器头部 - 预览/编辑作品功能的统一入口
 function preview_edit(obj) {
-    $('#preview_edit').text().trim() == "预览"?preview_art(obj):edit_art(obj);
+    $.t2s($('#preview_edit').text().trim()) == "预览"?pe_preview(obj):pe_edit(obj);
 }
 
-/*
- * 预览当前编辑作品
- */
-function preview_art(obj) {
+// 预览当前编辑作品
+function pe_preview(obj) {
     var work = restore_cache(); 
     ret = check_work(work);
     if (ret.trim().length) {
@@ -94,55 +85,51 @@ function preview_art(obj) {
     work.mark = "pinyin";
     work.cnum = cnum;
     var html = template('template_work_detail_body', work);
-    $('.editor-body').html(html);
-    $('#preview_edit').text("编辑");
-    $('#preview_edit').attr('title',"编辑作品");
+    $('.editor-body').html(trans_text(html));
+    $('#preview_edit').text(trans_text("编辑"));
+    $('#preview_edit').attr('title',trans_text("编辑作品"));
 }
 
-/*
- * 退出预览回到作品编辑界面
- */
-function edit_art(obj) {
+// 退出预览回到作品编辑界面
+function pe_edit(obj) {
     var work = restore_cache();
     var param = set_param(work);
     var html = template('template_editor_body', param);
-    $('.editor-body').html(html);
-    $('#preview_edit').text("预览");
-    $('#preview_edit').attr('title',"预览作品");
-/*
-    $.each(['name', 'author', 'preface', 'lines'], function(index, key) {
-        clean_get_show(key, key=='lines'?work[key].join('\n'):work[key]);
-    }); 
-*/
+    $('.editor-body').html(trans_text(html));
+    $('#preview_edit').text(trans_text("预览"));
+    $('#preview_edit').attr('title',trans_text("预览作品"));
+    // 添加编辑器事件处理器
+    editor_body_event_handler();
+    // 添加编辑器含拼音或注释各单元事件处理器
+    editor_pinyin_comment_event_handler();
 }
 
-/*
- * 在服务器上的作品库中删除指定作品 
- */
+// 在服务器上的作品库中删除指定作品 
 function del_work(id) {
-    var url = "/v1/del?_xsrf=" + $.cookie('_xsrf');
-    if (!confirm("作品删除后不能再恢复，确认删除此作品？")) return;
+    var url = "/v1/del";
+    if (!confirm(trans_text("作品删除后不能再恢复，确认删除此作品？"))) return;
 //    console.log("id: " + id);
-    $.post(url, {id:id}, function(data, status) {
+    spinner_start();
+    $.post(url, {_xsrf:$.cookie('_xsrf'), id:id}, function(data, status) {
 //        console.log("data: \n" + data + "\nstatus: " + status);
         $('#workDetail').modal('hide');
+    }, 'json').fail(function(jqXHR, textStatus, errorThrown) {
+        console.log("删除作品失败: " + textStatus + ": " + errorThrown );
+    }).always(function() {
+        spinner_stop();
     });
 }
 
-/*
- * 根据提供的作品信息初始化缓存
- */
+// 根据提供的作品信息初始化缓存
 function init_cache(work) {
    /* 清空缓存 */
    for ( var key in prepo ) delete prepo[key]; 
-   $.each(['name', 'author', 'preface', 'lines', 'type', 'category', 'tag', 'analyse', 'comment'], function(index, key) {
+   ['name', 'author', 'preface', 'lines', 'type', 'category', 'tag', 'analyse', 'comment'].forEach(function(key, index) {
        prepo[key] = work[key];
    });
 }
 
-/*
- * 从缓存中提取作品信息
- */
+// 从缓存中提取作品信息
 function restore_cache(dp=true) {
    var work = blank_work(dp);
    if ('name' in prepo && prepo.name.length ) {
@@ -167,11 +154,11 @@ function restore_cache(dp=true) {
            if(dp) work['dplines'][index] = prepo['lines'][index].duo_pinyin;
        }
    }
-   $.each(['type', 'category', 'tag', 'analyse', 'comment'], function(index, key) {
+   ['type', 'category', 'tag', 'analyse', 'comment'].forEach(function(key, index) {
        work[key] = prepo[key];
    });
 
-   $.each([work['name'], work['author'], work['type'], work['category']], function(index, key) {
+   [work['name'], work['author'], work['type'], work['category']].forEach(function(key, index) {
        if ( key.length && work['tag'].indexOf(key) == -1 ) work['tag'].push(key);
    });
 
@@ -196,16 +183,16 @@ function is_blank_cache() {
  * 文字输入区事件处理函数
  * 当在文字输入框中输入字符时触发此处理函数 - 框中无字符则清空拼音显示区域，如果输入区无变化则返回，否则向服务器获取拼音并显示在拼音显示区，如果是回车事件并且输入区是单行文本输入区则隐藏输入区
  */
-function key_pressed(e, obj) {
-    if (!e) e = window.event;
-    var id = obj.id.split('-')[0];
-    var text = $.t2s(obj.value.trim());
+function key_pressed(event) {
+    if (!event) event = window.event;
+    var id = this.id.split('-')[0];
+    var text = $.t2s(this.value.trim());
 
     /* 清除显示区，从服务器取得拼音和注释然后再显示 */
     clean_get_show(id, text);
 
     /* 在单行输入框中按下回车后隐藏输入框 */
-    if ((e.keyCode || e.which ) == key_Enter) {
+    if ((event.keyCode || event.which ) == key_Enter) {
         var input_id = "#" + id + "-input";
         if ( $(input_id).attr('type') == 'text') {
             $(input_id).hide();
@@ -221,34 +208,44 @@ function clean_get_show(id, text) {
     var output_id = "#" + id + "-output";
     var html = '';
 
+    var show_pinyin = $(output_id).attr('data-show-pinyin') == 'true'?true:false;
+    var show_comment = $(output_id).attr('data-show-comment') == 'true'?true:false;
+
     if ( text.length == 0 ) {
+        // 清空缓存
+        prepo[id] = [];
         $(output_id).html('');
         return ;
     }
     if ( last_value != text ) {
         last_value = text;
-//        console.log(md5(remove_nonchinese(text)));
-        /* 清空输出显示区 
-         * 每行文字对应一个文本拼音显示容器, 注释显示容器和注释编辑容器 
-         */
+        // console.log(md5(remove_nonchinese(text)));
+        // 清空输出显示区 
+        // 每行文字对应一个文本拼音显示容器, 注释显示容器和注释编辑容器 
         var tp = text.split('\n');
         var count = 0;
-        for ( var index in tp ) {
-            if ( tp[index].trim().length == 0 ) continue; /* 忽略空白行 */
-            html += output_item({id:id, index:count, text:'', ptext:[], comment:[], show_pinyin:$(output_id).attr('data-show-pinyin')=='true'?true:false, show_comment:$(output_id).attr('data-show-comment')=='true'?true:false});  
-            count += 1;
-        }
+        tp.forEach(function(value, index) {
+            // 忽略空白行 
+            if ( value.trim().length ) { 
+                html += output_item({id:id, index:count, text:'', ptext:[], comment:[], show_pinyin:show_pinyin, show_comment:show_comment});  
+                count += 1;
+            }
+        });
+
         $(output_id).html(trans_text(html));
        
-        /* 从服务器得到每行文字的拼音和注释，并显示在相应的容器上 */ 
-        prepo[id] = []; /* 清空缓存 TODO 优化？？？*/
+        // 从服务器得到每行文字的拼音和注释，并显示在相应的容器上 
+        prepo[id] = []; // 清空缓存 TODO 优化？？？
         count = 0;
-        for ( var index in tp ) {
-            if ( tp[index].trim().length == 0 ) continue; /* 忽略空白行 */
-            if ( $(output_id).attr('data-show-pinyin') == 'true') get_pinyin(id, count, tp[index]); 
-            if ( $(output_id).attr('data-show-comment') == 'true') get_comment(id, count, tp[index]); 
-            count += 1;
-        }
+        tp.forEach(function(value, index) {
+            // 忽略空白行 
+            if ( value.trim().length ) {
+                var param = {id:id, index:count, text:value.trim(), show_pinyin:show_pinyin, show_comment:show_comment};
+                if ( show_pinyin ) get_pinyin(param); 
+                if ( show_comment ) get_comment(param); 
+                count += 1;
+            }
+        });
     }
 }
 /*
@@ -257,64 +254,68 @@ function clean_get_show(id, text) {
  * dan_pinyin: 数组 元素是对应汉字的拼音字符串 
  * duo_pinyin: 数组 元素是对应汉字的所有读音组成的数组
  */
-function get_pinyin(id, index, text) {
-    var url = "/v1/pinyin?text=" + text;
+function get_pinyin(param) {
+    var id = param.id, index = param.index, text = param.text, show_pinyin = param.show_pinyin, show_comment = param.show_comment;
+    var url = "/v1/pinyin";
     var display_id = "#" + id + "-" + index;
-    $.getJSON(url)
+    $.post(url, {_xsrf:$.cookie('_xsrf'), text:JSON.stringify(text)}, 'json')
       .done(function(data) {
           var html = '';
+          var pinyin = JSON.parse(data);
+          // 更新缓存
           prepo[id][index] = {};
           prepo[id][index]['text'] = text;
-          prepo[id][index]['dan_pinyin'] = data.dan_pinyin;
-          prepo[id][index]['duo_pinyin'] = data.duo_pinyin;
+          prepo[id][index]['dan_pinyin'] = pinyin.dan_pinyin;
+          prepo[id][index]['duo_pinyin'] = pinyin.duo_pinyin;
+          // 生成相应的HTML代码
           var p = {'id':id,'section':index};
           Object.assign(p, prepo[id][index]);
           html += gen_pinyin_html(p);
+          // 显示在相应的输出区域
           $(display_id).html(trans_text(html));
+          // 添加事件处理器
+          editor_item_output_event_handler({id:id, show_pinyin:show_pinyin, show_comment:show_comment});
       })
-      .fail(function(jqxhr, textStatus, error) {
-          var err = textStatus + ": " + error;
-          console.log("Request Failed: " + err );
+      .fail(function(jqXHR, textStatus, errorThrown) {
+          console.log("获取拼音失败: " + textStatus + " " + errorThrown );
       });
 }
 
-/*
- * 获取文字对应的注释，并生成相应的HTML
- */
-function get_comment(id, index, text) {
-    var url = "/v1/comment?text=" + text;
+// 获取文字对应的注释，并生成相应的HTML
+function get_comment(param) {
+    var id = param.id, index = param.index, text = param.text, show_pinyin = param.show_pinyin, show_comment = param.show_comment;
+    var url = "/v1/comment"
     var comment_display_id = "#" + id + "-" + index + "-comment-display";
     var comment_input_id = "#" + id + "-" + index + "-comment-input";
-    $.getJSON(url)
+    $.post(url, {_xsrf:$.cookie('_xsrf'), text:JSON.stringify(text)}, 'json')
       .done(function(data) {
           var html = '';
-          /* merge comment */
-          /* TODO */
-          var comment = merge_comment({id:id,index:index,text:text,comment:data});
-          /* 更新注释显示区 TODO */
+          // 合并获得的注释和缓存中的注释
+          // TODO 
+          var comment = merge_comment({id:id,index:index,text:text,comment:JSON.parse(data)});
+          // 更新注释显示区 TODO 
           html = $(comment_display_id).html();
           html += show_comment_v1(comment);
           $(comment_display_id).html(trans_text(html));
-          /* 更新注释输入区 TODO */
+          // 更新注释输入区 TODO 
           html = $(comment_input_id).html();
           html += show_comment_v2(comment);
+          // 显示在相应的注释显示区域
           $(comment_input_id).html(trans_text(html));
+          // 添加事件处理器
+          editor_item_comment_event_handler({id:id, show_pinyin:show_pinyin, show_comment:show_comment});
       })
-      .fail(function(jqxhr, textStatus, error) {
-          var err = textStatus + ": " + error;
-          console.log("Request Failed: " + err );
+      .fail(function(jqXHR, textStatus, errorThrown) {
+          console.log("获取注释失败: " + textStatus + " " + errorThrown );
       });
 }
 
-/*
- * 合并服务器传来的注释和缓存中的注释
- */
+// 合并服务器传来的注释和缓存中的注释
 function merge_comment(data) {
     var id = data.id;
     var index = data.index;
     var text = data.text;
     var comment = data.comment;
-//    var cached_comment = id in prepo.comment?(id != 'lines'?prepo.comment[id]:(index in prepo.comment[id]?prepo.comment[id][index]:[])):[];
     var cached_comment = id in prepo.comment?(index in prepo.comment[id]?prepo.comment[id][index]:[]):[];
     var temp_comment = cached_comment;
     var updated = false;
@@ -366,12 +367,13 @@ function blank_work(dp=true) {
     comment:{name:[],preface:[],lines:[]},          // 注释
     analyse:[]           // 赏析
     };
-    if ( !dp ) $.each(['dpname', 'dpauthor', 'dppreface', 'dplines'], function(index, value) { delete work[value]; });
+
+    if ( !dp ) ['dpname', 'dpauthor', 'dppreface', 'dplines'].forEach(function(value, index) { delete work[value]; });
     
     return work;
 }
 
-// 生成控制作品编辑器界面的参数
+// 生成控制作品编辑器界面显示的参数
 function set_param(work)
 {
    return { 
@@ -503,7 +505,7 @@ function list_category(type) {
         html+="<option value=\"" + category[type][index] + "\" " + ">" + category[type][index] + "</option>";
     }
     $('#category-input').show();
-    category[type].length == 0 ? $('#category-input').hide() : $('#category-input').html(html);
+    category[type].length == 0 ? $('#category-input').hide() : $('#category-input').html(trans_text(html));
 }
 // 生成显示区对应的HTML
 function show_output(data) {
@@ -513,8 +515,8 @@ function show_output(data) {
        Object.assign(param, data, {index:0});
        html += output_item(param);
    } else {
-      $.each(data.text, function(index, value) {
-          var param = {id:data.id, index:index, text:data.text[index], ptext:data.ptext[index], dptext:data.dptext[index], comment:data.comment[index], show_pinyin:data.show_pinyin, show_comment:data.show_comment};
+      data.text.forEach(function(value, index) {
+          var param = {id:data.id, index:index, text:value, ptext:data.ptext[index], dptext:data.dptext[index], comment:data.comment[index], show_pinyin:data.show_pinyin, show_comment:data.show_comment};
           html += output_item(param);
       }); 
    } 
@@ -534,15 +536,12 @@ function output_item(data) {
    var cd_id = data.id + '-' + data.index + "-comment-display";
    var ci_id = data.id + '-' + data.index + "-comment-input";
 
-//    html += "<div id=\"" + pinyin_id + "\" class=\"output_item\" onmouseover=\"$('#" + ci_id + "').show();$('#" + ci_id + "').focus();\">"
-
-    html += "<div id=\"" + pinyin_id + "\" class=\"output_item\" ";
-    data.show_comment ? html += " onmouseover=\"show_input('#" + ci_id + "');\">": html += ">";
+    html += "<div id=\"" + pinyin_id + "\" class=\"output_item\" >";
     data.show_pinyin ? html += pin(data.id, data.index, data.text, data.ptext, data.dptext) : html += show_text(data.text, '\n'); 
     html += "</div>"
     if ( data.show_comment ) {
-      html += "<div id=\"" + cd_id + "\" class=\"output_item\" title=\"点击编辑注释\" onclick=\"$(this).hide();\" hidden placeholder='注释显示区'>" + show_comment_v1(data.comment) + "</div>";
-      html += "<textarea id=\"" + ci_id + "\" class=\"output_item\" title=\"编辑注释\" hidden onfocus=\"this.value?$('#" + cd_id + "').show():$('#" + cd_id + "').hide();\" onblur=\"$(this).hide();\" onchange=\"upd_comment(this);$('#" + cd_id + "').show();\" placeholder=\"在这里编辑上面文字的注释，文字和注释间以中文冒号分隔。例如 立春: 二十四节气中的第一个节气，代表春季的开始。\">" + show_comment_v2(data.comment) + "</textarea>";
+      html += "<div id=\"" + cd_id + "\" class=\"output_item\" title=\"点击编辑注释\" hidden placeholder='注释显示区'>" + show_comment_v1(data.comment) + "</div>";
+      html += "<textarea id=\"" + ci_id + "\" class=\"output_item\" title=\"编辑注释\" hidden placeholder=\"在这里编辑上面文字的注释，文字和注释间以中文冒号分隔。例如 立春: 二十四节气中的第一个节气，代表春季的开始。\">" + show_comment_v2(data.comment) + "</textarea>";
     }
     return html;
 }
@@ -636,7 +635,7 @@ function gen_pinyin_html(data) {
 function mark_pinyin(pindex, data) {
     var html = "<rt>";
     if (('duo_pinyin' in data) && (pindex in data.duo_pinyin) && ( typeof data.duo_pinyin[pindex] == 'object') && (data.duo_pinyin[pindex].length > 1 )) {
-        html += "<select id=\"" + data.id + "-" + data.section + "-" + pindex + "\" onchange=\"upd_pinyin(this);\">";
+        html += "<select id=\"" + data.id + "-" + data.section + "-" + pindex + "\" >";
         for ( var num in data.duo_pinyin[pindex] ) {
            html += "<option value=\"" + data.duo_pinyin[pindex][num] + "\" " + ( data.duo_pinyin[pindex][num] == data.dan_pinyin[pindex] ? " selected >" : ">" ) + data.duo_pinyin[pindex][num] + "</option>";
         }
@@ -657,6 +656,185 @@ function show_input(id){
        $(id).show().focus();
    }
 }
+// 作品编辑器事件处理器
+function editor_event_handler() {
+    editor_header_event_handler(); 
+    editor_body_event_handler(); 
+//    editor_footer_event_handler(); 
+}
+// 设置作品编辑器头部菜单项事件处理器
+function editor_header_event_handler() {
+    // 菜单项 - 保存
+    $('#save_new').on('click', save_new);
+    // 菜单项 - 预览和编辑
+    $('#preview_edit').on('click', function(){ preview_edit(this); });
+}
+
+// 设置作品编辑器中部各单元事件处理器
+function editor_body_event_handler() {
+    ['type','category'].forEach(function(id) {
+        var input_id  = '#' + id + '-input';
+        $(input_id).on('mouseover', function() {
+            $(this).focus();
+        });
+        $(input_id).on('change', function() {
+            switch(id) {
+                case 'type' :
+                    upd_type(this);
+                    break;
+                case 'category' :
+                    upd_category(this);
+                    break;
+            }
+        });
+    });
+    ['name','author','preface','lines','tag','analyse'].forEach(function(id) {
+        var output_id = '#' + id + '-output';
+        var input_id  = '#' + id + '-input';
+        var show_pinyin  = $(output_id).attr('data-show-pinyin')  == 'true'?true:false;
+        var show_comment = $(output_id).attr('data-show-comment') == 'true'?true:false;
+       
+        // 条目输出显示区双击或鼠标悬停则显示输入区 
+        $(output_id).on('mouseover', function() { show_input(input_id); });
+        $(output_id).on('dblclick', function() { show_input(input_id); });
+        // 输入区鼠标悬停则获得焦点
+        $(input_id).on('mouseover', function() { $(this).focus(); });
+         
+        if ( show_pinyin ) {
+            $(input_id).on('blur', function() {
+               this.value.length?$(this).hide():$(this).show();
+            });
+            $(input_id).on('keyup', key_pressed);
+        } else {
+            $(input_id).on('blur', function() {
+                // 更新相应缓存
+                upd_value(this);
+            });
+        }
+    });
+}
+
+// 文本输入框失焦事件处理器 - 更新对应的缓存
+function upd_value(obj) {
+    var id = obj.id.split('-')[0];
+    switch(id) {
+        case 'analyse':
+            upd_analyse(obj);
+            break;
+        case 'tag':
+            upd_tag(obj);
+            break;
+    }
+}
+
+// 添加编辑器中部含拼音输出或注释各单元事件处理器
+function editor_pinyin_comment_event_handler() {
+    ['name', 'author', 'preface', 'lines'].forEach(function(id, index) {
+        var output_id = "#" + id + "-output";
+        var show_pinyin  = $(output_id).attr('data-show-pinyin')  == 'true'?true:false;
+        var show_comment = $(output_id).attr('data-show-comment') == 'true'?true:false;
+        var param = { id:id, show_pinyin:show_pinyin, show_comment:show_comment};
+        editor_item_output_event_handler(param); 
+        editor_item_comment_event_handler(param); 
+    });
+}
+
+// 为编辑器条目中的显示单元添加事件处理器
+function editor_item_output_event_handler(config) {
+    // console.log("为" + config.id + "显示单元添加事件处理器");
+    var id = config.id;
+    var show_comment = config.show_comment;
+    var show_pinyin  = config.show_pinyin;
+    prepo[id].forEach(function(item, index) {
+        var item_output_id = '#' + id + '-' + index;
+        var item_cd_id = '#' + id + '-' + index + "-comment-display";
+        var item_ci_id = '#' + id + '-' + index + "-comment-input";
+
+        if ( show_comment ) {
+            // 文本输出显示单元单击事件外理器 - 显示注释输入区，并阻止冒泡
+            $(item_output_id).on('click', function(event){ show_input(item_ci_id); event.stopPropagation(); });
+            // 文本输出显示单元鼠标悬停事件外理器 - 显示注释输入区，并阻止冒泡
+            $(item_output_id).on('mouseover', function(event){ show_input(item_ci_id); event.stopPropagation(); });
+        }
+        // 在有多音字的输出显示区，单击多音字则修改多音字的拼音
+        if ( show_pinyin ) {
+            if('duo_pinyin' in prepo[id][index]) prepo[id][index].duo_pinyin.forEach(function(v,i) {
+                if ( typeof(v) == 'object' && v.length ) {
+                    var dp_id = '#' + id + '-' + index + '-' + i;
+                    // 鼠标悬停事件外理器 - 获得焦点
+                    $(dp_id).on('mouseover', function(event) { this.focus(); event.stopPropagation();});
+                    // 多音字拼音改变事件处理器 - 更新缓存
+                    $(dp_id).on('change', function(event){ upd_pinyin(this); });
+                    $(dp_id).on('click', function(event) {event.stopPropagation();});
+                }
+            });
+        }
+   });
+}
+
+// 为编辑器条目中的注释单元添加事件处理器
+function editor_item_comment_event_handler(config) {
+    // console.log("为" + config.id + "注释单元添加事件处理器");
+    var id = config.id;
+    var show_comment = config.show_comment;
+    var show_pinyin  = config.show_pinyin;
+    prepo[id].forEach(function(item, index) {
+        var item_output_id = '#' + id + '-' + index;
+        var item_cd_id = '#' + id + '-' + index + "-comment-display";
+        var item_ci_id = '#' + id + '-' + index + "-comment-input";
+
+        if ( show_comment ) {
+            // 注释显示区点击事件外理器 - 隐藏注释显示区
+            $(item_cd_id).on('click', function(event){ $(this).hide();});
+            // 注释显示区鼠标悬停事件外理器 - 阻止冒泡
+            $(item_cd_id).on('mouseover', function(event) { event.stopPropagation(); });
+            // 注释输入区获焦事件外理器 - 有注释则显示否则隐藏注释显示区
+            $(item_ci_id).on('focus', function(event){this.value.length?$(item_cd_id).show():$(item_cd_id).hide();});
+            // 注释输入区获焦事件外理器 - 隐藏注释显示区和注释输入区
+            $(item_ci_id).on('blur', function(event){$(this).hide();$(item_cd_id).hide();});
+            // 注释输入区内容改变事件处理器 - 更新缓存，有注释则显示
+            $(item_ci_id).on('change', function(event){
+                upd_comment(this);
+                this.value.length?$(item_cd_id).show():$(item_cd_id).hide();
+            });
+            // 注释输入区鼠标悬停事件外理器 - 阻止冒泡
+            $(item_ci_id).on('mouseover', function(event) { event.stopPropagation(); });
+        }
+   });
+}
+
+// 删除编辑器条目中元素的事件处理器
+function rm_item_ehandler(config) {
+    // console.log("进入事件处理器删除函数");
+    var id = config.id;
+    var show_comment = config.show_comment;
+    var show_pinyin  = config.show_pinyin;
+    prepo[id].forEach(function(item, index) {
+        var item_output_id = '#' + id + '-' + index;
+        var item_cd_id = '#' + id + '-' + index + "-comment-display";
+        var item_ci_id = '#' + id + '-' + index + "-comment-input";
+
+        if ( show_comment ) {
+            $(item_output_id).off('mouseover');
+            $(item_cd_id).off('click');
+            $(item_ci_id).off('focus');
+            $(item_ci_id).off('blur');
+            $(item_ci_id).off('change');
+        }
+        // 在有多音字的输出显示区，单击多音字则修改多音字的拼音
+        if ( show_pinyin ) {
+            if('duo_pinyin' in prepo[id][index]) prepo[id][index].duo_pinyin.forEach(function(v,i) {
+                if ( typeof(v) == 'object' && v.length ) {
+                    var dp_id = '#' + id + '-' + index + '-' + i;
+                    $(dp_id).off('change');
+                    $(dp_id).off('mouseover');
+                    $(dp_id).off('click');
+                }
+            });
+        }
+    });
+}
+
 // 模板辅助函数，判断是汉字还是标点符号
 template.helper('nonchinese_char', function(text) {
     return is_nonchinese_char(text);
@@ -698,73 +876,67 @@ template.helper('blank', function(data) {
 {# 诗词编辑界面模版：编辑界面头部区 显示功能按钮 #}
 <script id="template_editor_header" type="text/html">
   <div>
-  <span type="button" style="cursor:pointer;" title="保存作品" onclick="save_new()" id="save_new" > 保存 </span>
+  <span style="cursor:pointer;" title="保存作品" id="save_new" > 保存 </span>
   <span class="separator"> | </span>
-  <span type="button" style="cursor:pointer;" title="预览作品" onclick="preview_edit(this)" id="preview_edit" > 预览 </span>
+  <span style="cursor:pointer;" title="预览作品" id="preview_edit" > 预览 </span>
   </div>
   <div>
-  <span type="button" style="cursor:pointer" data-dismiss="modal" aria-hidden="true" title="关闭此编辑界面">关闭</span>
+  <span style="cursor:pointer" data-dismiss="modal" aria-hidden="true" title="关闭此编辑界面">关闭</span>
   </div>
 </script>
 
 {# 诗词编辑界面模版：编辑界面脚部区 显示关闭按键 #}
 <script id="template_editor_footer" type="text/html">
-  <span type="button" style="float:right;cursor:pointer;opacity:.5;" data-dismiss="modal" aria-hidden="true" title="关闭此编辑界面">关闭</span>
+  <span style="float:right;cursor:pointer;opacity:.5;" data-dismiss="modal" aria-hidden="true" title="关闭此编辑界面">关闭</span>
 </script>
 
 {# 诗词编辑界面模版：编辑界面主体区 显示诗词各项编辑界面 #}
 <script id="template_editor_body" type="text/html">
-  <div id="editor_art_type" class="editor_sub_container">     {# 子容器1：分类 #}
-    <% include('template_editor_art_type') %>
+  <div id="editor_work_type" class="editor_sub_container">     {# 子容器1：分类 #}
+    <% include('template_editor_type') %>
   </div>
-  <div id="editor_art_name" class="editor_sub_container">     {# 子容器2：作品名称 #}
+  <div id="editor_work_name" class="editor_sub_container">     {# 子容器2：作品名称 #}
     <% include('template_editor_item', name) %>
   </div>
-  <div id="editor_art_author" class="editor_sub_container">   {# 子容器3：作者 #}
+  <div id="editor_work_author" class="editor_sub_container">   {# 子容器3：作者 #}
     <% include('template_editor_item', author) %>
   </div>
-  <div id="editor_art_preface" class="editor_sub_container">  {# 子容器4：序 #}
+  <div id="editor_work_preface" class="editor_sub_container">  {# 子容器4：序 #}
     <% include('template_editor_item', preface) %>
   </div>
-  <div id="editor_art_body" class="editor_sub_container">     {# 子容器5：原文 #}
+  <div id="editor_work_body" class="editor_sub_container">     {# 子容器5：原文 #}
     <% include('template_editor_item', lines) %>
   </div>
-  <div id="editor_art_tag" class="editor_sub_container">      {# 子容器6：标签 #}
+  <div id="editor_work_tag" class="editor_sub_container">      {# 子容器6：标签 #}
     <% include('template_editor_item', tag) %>
   </div>
-  <div id="editor_art_analyse" class="editor_sub_container">  {# 子容器7：赏析 #}
+  <div id="editor_work_analyse" class="editor_sub_container">  {# 子容器7：赏析 #}
     <% include('template_editor_item', analyse) %>
   </div>
 </script>
 
-<script id="template_editor_art_type" type="text/html">
-  <div class="editor_item_right">
-    <div class="editor_item_type">
+<script id="template_editor_type" type="text/html">
+  <div class="editor_item_type">
     <% include('template_editor_select', type) %>
     <% include('template_editor_select', category) %>
-    </div>
   </div>
 </script>
 
 {# 诗词编辑界面模版：编辑界面主体区 单项编辑界面 #}
 <script id="template_editor_item"  type="text/html">
-<div id="<%=# id %>-editor" class="editor_item_display">
-  <div id="<%=# id %>-output-container">
+<div id="<%=# id %>-editor" class="editor_item">
+  <div id="<%=# id %>-output-container" class="editor_item_output">
       <% var data = {id:id, text:text, ptext:ptext, dptext:dptext, comment:comment, show_pinyin:config.show_pinyin, show_comment:config.show_comment}; %>
-      <div id="<%=# id %>-output" class="item_output" ondblclick="show_input('#<%=# id %>-input');" data-show-pinyin="<%=# tf(config.show_pinyin) %>" data-show-comment="<%=# tf(config.show_comment) %>" title="<%=# title %>"><%=# show_output_v1(data) %>
+      <div id="<%=# id %>-output" class="item_output" data-show-pinyin="<%=# tf(config.show_pinyin) %>" data-show-comment="<%=# tf(config.show_comment) %>" title="<%=# title %>"><%=# show_output_v1(data) %>
       </div>
   </div>
-  <div id="<%=# id %>-input-container">
+  <div id="<%=# id %>-input-container" class="editor_item_input">
     <% if ( config.control_input == 'input' ) { %>
-{# 单行文本输入 #}
-      <input id="<%=# id %>-input" type="text" placeholder="<%=# placeholder %>" onmouseover="$(this).focus();" <% if (config.show_pinyin) { %> onkeyup="key_pressed(event, this);" onblur="this.value.length?$(this).hide():$(this).show();" <% } else { %> onblur="upd_<%=# id %>(this)" <% } %> value="<%=# show_text_v1(text, ' ') %>" <% if ( text.length ) { %> hidden <% } %>></input>
+      {# 单行文本输入 #}
+      <input id="<%=# id %>-input" type="text" placeholder="<%=# placeholder %>" value="<%=# show_text_v1(text, ' ') %>" data-show-pinyin="<%=# tf(config.show_pinyin) %>" data-show-comment="<%=# tf(config.show_comment) %>" <% if ( text.length ) { %> hidden <% } %>></input>
     <% } else if ( config.control_input == 'textarea' ) { %>
-{# 多行文本输入 #}
-      <textarea id="<%=# id %>-input" type="textarea" placeholder="<%=# placeholder %>" onmouseover="$(this).focus();" rows="<%=# text.length %>" maxlength="<%=# config.size %>" <% if ( config.show_pinyin ) { %> onkeyup="key_pressed(event, this);" onblur="this.value.length?$(this).hide():$(this).show();" <% } else { %> onblur="upd_<%=# id %>(this)" <% } %> <% if ( text.length ) { %> hidden <% } %> ><%=# show_text_v1(text, '\n') %></textarea>
-    <% } else if ( config.control_input == 'select' ) { %>
-      <select id="<%=# id %>-input" onchange="upd_<%=# id %>(this)">
-        <%=# list_options(config.options, text) %> 
-      </select>
+      {# 多行文本输入 #}
+      <textarea id="<%=# id %>-input" type="textarea" placeholder="<%=# placeholder %>" rows="<%=# text.length %>" maxlength="<%=# config.size %>" data-show-pinyin="<%=# tf(config.show_pinyin) %>" data-show-comment="<%=# tf(config.show_comment) %>" <% if ( text.length ) { %> hidden <% } %> ><%=# show_text_v1(text, '\n') %></textarea>
     <% } %>
   </div>
 </div>
@@ -772,7 +944,7 @@ template.helper('blank', function(data) {
 
 <script id="template_editor_select" type="text/html">
 <div>
-  <select id="<%=# id %>-input" onchange="upd_<%=# id %>(this)" <% if (config.options.length == 0 ) { %>hidden<% } %>>
+  <select id="<%=# id %>-input" <% if (config.options.length == 0 ) { %>hidden<% } %>>
      <%=# list_options(config.options, text) %> 
   </select>
 </div>

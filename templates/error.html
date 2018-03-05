@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}
-<title>{{ escape(code) }}</title>
+<title>{{ code }}</title>
 {% endblock %}
 
 {% block css %}
@@ -14,8 +14,8 @@
 {% endblock %}
 
 {% block content %}
-<center><h2>{{escape(code)}} {{escape(reason)}}.</h2></center>
-<hr><center>{{escape(exception)}}</center>
+<center><h2>{{code}} {{reason}}.</h2></center>
+<hr><center>{{exception}}</center>
 <hr><center>我爱诗词</center>
 {% endblock %}
 

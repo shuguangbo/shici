@@ -85,17 +85,17 @@ function toggle_fanjian()
     } else {
         fanjian = "j"
     }
-    $.cookie("FJ", fanjian);
+    localStorage.setItem("FJ", fanjian);
     display_fanjian();
 }
 
 /* 根据繁简设置改变页面 */
 function display_fanjian()
 {
-    if ($.cookie("FJ") == null || $.cookie("FJ") == "undefined") { 
-        $.cookie("FJ", fanjian); 
+    if (localStorage.getItem("FJ") == null || localStorage.getItem("FJ") == "undefined") { 
+        localStorage.setItem("FJ", fanjian); 
     } else {
-        fanjian = $.cookie("FJ");
+        fanjian = localStorage.getItem("FJ");
     } 
 
     if ( fanjian == "j") {
@@ -110,7 +110,7 @@ function display_fanjian()
 function toggle_pz()
 {
     mark = mark == 'pz'?'none':'pz';
-    $.cookie("mark", mark); 
+    localStorage.setItem("mark", mark); 
     update_work_detail_body();
 }
 
@@ -118,18 +118,18 @@ function toggle_pz()
 function toggle_pinyin()
 {
     mark = mark == 'pinyin'?'none':'pinyin';
-    $.cookie("mark", mark); 
+    localStorage.setItem("mark", mark); 
     update_work_detail_body();
 }
 
 /* 显示标注 */
 function get_mark()
 {
-    if ($.cookie("mark") == null || $.cookie("mark") == "undefined") { 
-        $.cookie("mark", 'none'); 
+    if (localStorage.getItem("mark") == null || localStorage.getItem("mark") == "undefined") { 
+        localStorage.setItem("mark", 'none'); 
         mark = 'none';
     } else {
-        mark = $.cookie("mark");
+        mark = localStorage.getItem("mark");
     } 
 }
 
@@ -146,10 +146,10 @@ function set_dialect(value)
     loadedData = false;
     audio_state = 0;
 
-    if ( $.cookie("tts_vendor") == 'tts_baidu' ) {
-        $.cookie("bddialect", value);
+    if ( localStorage.getItem("tts_vendor") == 'tts_baidu' ) {
+        localStorage.setItem("bddialect", value);
     } else {
-        $.cookie("xfdialect", value);
+        localStorage.setItem("xfdialect", value);
     }
 }
 
@@ -159,7 +159,7 @@ function set_tile(value)
        return 0;
     }
     tilestyle = value;
-    $.cookie("tilestyle", tilestyle);
+    localStorage.setItem("tilestyle", tilestyle);
 }
 /* 设置语音合成服务提供商 */
 function set_tts_vendor(value)
@@ -167,7 +167,7 @@ function set_tts_vendor(value)
     if ( tts_vendor == value ) {
         return 0;
     }
-    $.cookie("tts_vendor", value);
+    localStorage.setItem("tts_vendor", value);
     tts_vendor = value;
     show_tts_vendor();
     /* 重置tts变量，以便重新获取音频数据 */
@@ -177,8 +177,8 @@ function set_tts_vendor(value)
 /* 显示语音服务提供商对应的tts参数设置页面 */
 function show_tts_vendor()
 {
-    if ( $.cookie("tts_vendor") != null && $.cookie("tts_vendor") != "undefined") {
-        tts_vendor = $.cookie("tts_vendor");
+    if ( localStorage.getItem("tts_vendor") != null && localStorage.getItem("tts_vendor") != "undefined") {
+        tts_vendor = localStorage.getItem("tts_vendor");
     }
 
     if ( tts_vendor == 'tts_xunfei' ) {
@@ -197,28 +197,28 @@ function show_tts_vendor()
 /* 在设置页面显示对应语音服务提供商的tts发音选项 */
 function display_dialect()
 {
-    if (( tts_vendor == "tts_baidu" ) && ( $.cookie("bddialect") == null || $.cookie("bddialect") == "undefined")) {
-        $.cookie("bddialect", '0'); 
-    } else if ($.cookie("xfdialect") == null || $.cookie("xfdialect") == "undefined") {
-        $.cookie("xfdialect", 'aisjying'); 
+    if (( tts_vendor == "tts_baidu" ) && ( localStorage.getItem("bddialect") == null || localStorage.getItem("bddialect") == "undefined")) {
+        localStorage.setItem("bddialect", '0'); 
+    } else if (localStorage.getItem("xfdialect") == null || localStorage.getItem("xfdialect") == "undefined") {
+        localStorage.setItem("xfdialect", 'aisjying'); 
     }
-    dialect = $.cookie("xfdialect");
+    dialect = localStorage.getItem("xfdialect");
     var obj="[value='" + dialect + "']";
     $(obj).attr('checked', true);
-    dialect = $.cookie("bddialect");
+    dialect = localStorage.getItem("bddialect");
     var obj="[value='bdtts" + dialect + "']";
     $(obj).attr('checked', true);
 }
 
 function display_tilestyle()
 {
-    if ( $.cookie('tilestyle') == null || $.cookie('tilestyle') == 'undefined') {
+    if ( localStorage.getItem('tilestyle') == null || localStorage.getItem('tilestyle') == 'undefined') {
         if ( ['tile_slim', 'tile_normal'].indexOf(tilestyle) == -1 ) {
             tilestyle = 'tile_slim';
         } 
-        $.cookie('tilestyle', tilestyle);
+        localStorage.setItem('tilestyle', tilestyle);
     } 
-    tilestyle = $.cookie('tilestyle');
+    tilestyle = localStorage.getItem('tilestyle');
     var obj = "[value='" + tilestyle + "']";
     $(obj).attr('checked',true);
 }
@@ -233,10 +233,10 @@ function trans_keywords()
 
 function trans_text(text)
 {
-    if ($.cookie("FJ") == null || $.cookie("FJ") == "undefined") { 
-        $.cookie("FJ", 'j'); 
+    if (localStorage.getItem("FJ") == null || localStorage.getItem("FJ") == "undefined") { 
+        localStorage.setItem("FJ", 'j'); 
     } 
-    if ( $.cookie("FJ") == 'j' ) {
+    if ( localStorage.getItem("FJ") == 'j' ) {
         result = $.t2s(text);
     } else {
         result = $.s2t(text);
@@ -260,10 +260,10 @@ $(function() {
     });
 
     $(document).ready(function() { 
-        get_mark();          //根据cookie设置标注类型 - 拼音、平仄
-        display_fanjian();   //根据cookie设置繁简，并转换页面 
-        display_tilestyle(); //根据cookie设置搜索结果显示方式: 贴片/书签, 并显示在配置页面 
-        show_tts_vendor();   //根据cookie设置TTS服务商信息，并显示在配置页面
+        get_mark();          //设置标注类型 - 拼音、平仄
+        display_fanjian();   //设置繁简，并转换页面 
+        display_tilestyle(); //设置搜索结果显示方式: 贴片/书签, 并显示在配置页面 
+        show_tts_vendor();   //设置TTS服务商信息，并显示在配置页面
     });
 });
 
