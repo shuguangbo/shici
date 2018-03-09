@@ -1,44 +1,44 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-    <head>
-        {% block title %} {% endblock %}
-        <meta charset="utf-8"></meta>
-        <meta name="description" content="【我爱诗词】" /></meta>
-        <meta name="keywords" content="【我爱诗词】" /></meta>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"></meta>
-        <link rel="icon" type="image/png" href="../static/icon/shici_icon.png"> </link>
-        <link rel="stylesheet" href="../static/css/bootstrap-3.3.7.min.css"></link>
-        <link rel="stylesheet" href="../static/css/base.css"></link>
-        <link rel="stylesheet" href="../static/css/iconfont.css"></link>
-        {% block css %} {% endblock %}
-        {% block javascript %} {% endblock %}
-        {% include 'required_js.html' %}
-        {% include 'template_work_show.html' %}
-        {% include 'template_work_editor.html' %}
-        <base target="_self">
-    </head>
+  <head>
+      {% block title %} {% endblock %}
+      <meta charset="utf-8"></meta>
+      <meta name="description" content="【我爱诗词】" /></meta>
+      <meta name="keywords" content="【我爱诗词】" /></meta>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"></meta>
+      <link rel="icon" type="image/png" href="../static/icon/shici_icon.png"> </link>
+      <link rel="stylesheet" href="../static/css/bootstrap-3.3.7.min.css"></link>
+      <link rel="stylesheet" href="../static/css/base.css"></link>
+      <link rel="stylesheet" href="../static/css/iconfont.css"></link>
+      {% block css %} {% endblock %}
+      {% block javascript %} {% endblock %}
+      {% include 'required_js.html' %}
+      {% include 'common_js.html' %} 
+      {% include 'template_work_show.html' %}
+      {% include 'template_work_editor.html' %}
+      <base target="_self">
+  </head>
 
-    <body class="home">
-      <div class="page-container">
-        <div id="spinner-container"></div>
-        <div class="page-item">
-          {% include 'template_navigation_bar.html' %}
-          <div class="container-fixed-width">
-            {% include 'template_config_panel.html' %} 
-          </div>
+  <body class="home">
+    <div class="page_container">
+      <div class="page_item">
+        <div id="spinner_container"></div>
+      </div>
+      <div class="page_item">
+        {% include 'template_navigation_bar.html' %}
+        {% include 'template_config_panel.html' %} 
+      </div>
+      <div class="page_item">    
+        <div id="content">
+           {% block content %} {% endblock %}
         </div>
-        <div class="page-item">    
-          <div id="content" >
-             {% block content %} {% endblock %}
-          </div>
-          {% include 'template_modal_dialog.html' %}
-        </div>
-        <div class="page-item">    
-          <div class="footer">
-            <br><div class="txt">【我爱<svg class="icon" aria-hidden="true"><use xlink:href="#icon-icon_shi"></use></svg><svg class="icon" aria-hidden="true"><use xlink:href="#icon-icon_ci"></use></svg>】</div>
-          </div>
-</div>
-          {% include 'common_js.html' %} 
-      </div> 
-    </body>
+        {% include 'template_modal_dialog.html' %}
+      </div>
+      <div class="page_item">    
+        <div class="footer">
+          <br><div class="txt">【我爱<svg class="icon" aria-hidden="true"><use xlink:href="#icon-icon_shi"></use></svg><svg class="icon" aria-hidden="true"><use xlink:href="#icon-icon_ci"></use></svg>】</div>
+         </div>
+       </div>
+    </div> 
+  </body>
 </html>

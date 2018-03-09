@@ -55,8 +55,8 @@ class restSaveWorkHandler(BaseHandler):
 
     @tornado.web.asynchronous
     def post(self, *args, **kwargs):
-        work = json.loads(self.get_argument("work", ""), encoding='utf-8')
         try :
+            work = json.loads(self.get_argument("work", ""), encoding='utf-8')
             ret = sc.save_work(work=work, type='json')
         except Exception as e:
             import traceback
@@ -74,7 +74,7 @@ class restDelWorkHandler(BaseHandler):
 
     @tornado.web.asynchronous
     def post(self, *args, **kwargs):
-        id = self.get_argument("id", "")
+        id = json.loads(self.get_argument("id", ""), encoding='utf-8')
         try :
             ret = sc.del_work(id=id)
         except Exception as e:

@@ -27,7 +27,7 @@ class Shici():
     'author': u'',         # 作者
     'preface': u'',        # 序
     'category': u'',       # 体裁 - 五言绝句、五言律诗等
-    'lines': [],           # 诗句
+    'lines': u'',           # 诗句
     'plines': [],          # 诗句 - 拼音
     'pname': [],           # 作品名称 - 拼音 
     'pauthor': [],         # 作者 - 拼音
@@ -35,7 +35,7 @@ class Shici():
     'tag': [],             # 标签
     'url': u'',            # 指向百科的链接
     'comment': {},         # 注释
-    'analyse': []          # 赏析
+    'analyse': u''          # 赏析
     }
 
     work_set={}
@@ -56,7 +56,7 @@ class Shici():
     def parse_comment(self, work) :
         """ 分析诗句，从注释字典中查找注释交添加到诗词的注释中
         """
-        for line in work['lines'] :
+        for line in work['lines'].split('\n') :
             for key in jieba.cut(line) :
                 if work['comment'].has_key(key) : continue
                 elif self.comment.has_key(key) : work['comment'][key] = self.comment[key]
@@ -96,7 +96,7 @@ class Shici():
         """ 在诗句中查找关键字
         """
         if work['lines'] :
-            for line in work['lines'] :
+            for line in work['lines'].split('\n') :
                 if line.find(keyword) != -1 :
                     return 0
             return -1
@@ -129,7 +129,7 @@ class Shici():
                 if count >= num :
                     break
 #        print "Debug: keyword %s %d" % (word, count)
-        found.sort(key=lambda k:(k.get('author',''), k.get('category',''), k.get('name',''), k.get('lines'[0], '')))
+        found.sort(key=lambda k:(k.get('author',''), k.get('category',''), k.get('name','')))
         if type == 'json' :
             jstr = json.dumps(found, ensure_ascii=False, encoding='utf-8');
             return jstr
@@ -145,7 +145,7 @@ class Shici():
             id = self.work_set.keys()[index]
 
         work = self.work_set[id]
-        tex = work['name'] + " " + work['author'] + " " + work['preface'] + " " + " ".join(work['lines'])
+        tex = work['name'] + " " + work['author'] + " " + work['preface'] + " " + work['lines']
         if type == 'json' :
             jstr = json.dumps(work, ensure_ascii=False, encoding='utf-8');
             return jstr

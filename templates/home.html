@@ -5,17 +5,24 @@
 {% endblock %}
 
 {% block css %}
-<link rel="stylesheet" href="../static/css/shici.css">
 <link rel="stylesheet" href="../static/css/flex.css">
+<style>
+.welcome {
+  margin: 0 auto;
+  width: 80%;
+}
+</style>
 {% endblock %}
 
+{#
 {% block javascript %}
 <script src="../static/js/jquery-3.1.1.min.js"> </script>
 <script src="../static/js/bootstrap-3.3.7.min.js"> </script>
 {% endblock %}
+#}
 
 {% block content %}
-<div id="content" class="container-fixed-width">
+<div id="welcome" class="welcome">
 <center><h2>欢迎来到【我爱诗词】</h2></center>
 <hr>
 <strong>使用方法</strong>

@@ -1,38 +1,38 @@
 {% block config_panel %}
 <div id="config_panel" hidden>
-    <div class="config-panel-container">
-      <div id="config_display">
-         <p>繁简切换: <label><span id='fj' >简</span></label></p>
-      </div>
-      <div id="" >
-         <form >搜索结果显示：
-            <input name="tilestyle" type="radio" value="tile_normal">贴片
-            <input name="tilestyle" type="radio" value="tile_slim">书签
-         </form>
-      </div>
-      <div id="config_tts">
-        <form >语音服务：
-          <input name="tts_vendor" type="radio" id="tts_xunfei" value="tts_xunfei">讯飞
-          <input name="tts_vendor" type="radio" id="tts_baidu" value="tts_baidu">百度
+  <div id="config_panel_container" class="config_panel_container">
+    <div id="config_display">
+       <p>繁简切换: <label><span id='fj' >简</span></label></p>
+    </div>
+    <div id="config_search_result_show" >
+       <form >搜索结果显示：
+          <input name="tilestyle" type="radio" value="card">卡片
+          <input name="tilestyle" type="radio" value="bookmark">书签
+       </form>
+    </div>
+    <div id="config_tts">
+      <form >语音服务：
+        <input name="tts_vendor" type="radio" id="tts_xunfei" value="tts_xunfei">讯飞
+        <input name="tts_vendor" type="radio" id="tts_baidu" value="tts_baidu">百度
+      </form>
+      <div id="tts_xunfei_config" >
+        <form > 发音:  
+          <input name="xfdialect" type="radio" value="aisjying">普通话
+          <input name="xfdialect" type="radio" value="vinn">女童声
+          <input name="xfdialect" type="radio" value="aisxrong">四川话
+          <input name="xfdialect" type="radio" value="xiaomei">广东话
+          <input name="xfdialect" type="radio" value="aisxying">陕西话
+          <input name="xfdialect" type="radio" value="aisxqiang">湖南话
         </form>
-        <div id="tts_xunfei_config" >
-          <form > 发音:  
-            <input name="xfdialect" type="radio" value="aisjying">普通话
-            <input name="xfdialect" type="radio" value="vinn">女童声
-            <input name="xfdialect" type="radio" value="aisxrong">四川话
-            <input name="xfdialect" type="radio" value="xiaomei">广东话
-            <input name="xfdialect" type="radio" value="aisxying">陕西话
-            <input name="xfdialect" type="radio" value="aisxqiang">湖南话
-          </form>
-        </div>
-        <div id="tts_baidu_config" hidden >
-          <form > 发音:  
-            <input name="bddialect" type="radio" value="bdtts0">女声
-            <input name="bddialect" type="radio" value="bdtts1">男声
-            <input name="bddialect" type="radio" value="bdtts3">度逍遥
-            <input name="bddialect" type="radio" value="bdtts4">度丫丫
-          </form>
-        </div>
+      </div>
+      <div id="tts_baidu_config" hidden >
+        <form > 发音:  
+          <input name="bddialect" type="radio" value="bdtts0">女声
+          <input name="bddialect" type="radio" value="bdtts1">男声
+          <input name="bddialect" type="radio" value="bdtts3">度逍遥
+          <input name="bddialect" type="radio" value="bdtts4">度丫丫
+        </form>
+      </div>
     </div>
   </div>
 </div>
@@ -40,7 +40,7 @@
 <script>
 $(document).ready(function(){
     // 设置面板事件处理器
-//    $("#config_panel").mouseout(function(){ $(this).hide(); });
+    $("#config_panel").click(function(){ $(this).hide(); });
     $("#fj").mouseover(function(){ toggle_fanjian(); });
     $("input[name='tilestyle']").mouseover(function(){
         this.checked = true;
@@ -62,4 +62,24 @@ $(document).ready(function(){
     });
 });
 </script>
+<style>
+#config_panel {
+  margin: 0 auto;
+  width: 80%;
+}
+.config_panel_container {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    justify-content: space-between;
+    background-color: GhostWhite;
+    padding: 15px 10px 10px 10px;
+    border: none;
+    border-radius: 5px;
+}
+.config_panel_container:hover {
+    box-shadow: 0px 2px 2px LightGray;
+}
+</style>
 {% endblock %}

@@ -1,7 +1,17 @@
+// 作品搜索、显示、编辑所需通用全局变量和函数
+var key_Enter = 13;
+var key_Clear = 12;
+var key_Delete = 46;
+var key_BackSpace = 8;
+var category = {'诗':['五言古诗','五言乐府','五言绝句','五言律诗','七言古诗','七言乐府','七言绝句','七言律诗',"其它"],'词':[],'文':[],'曲':[]};
+var g_chinese_char=/[\u3400-\u9FFF\uF900-\uFAFF]/;
+var g_nonchinese_char=/[^\u3400-\u9FFF\uF900-\uFAFF]/;
+var g_nonchinese_all=/[^\u3400-\u9FFF\uF900-\uFAFF]+/g;
+
 var fanjian = "j";               /* 缺省显示简体字 */
 var dialect = "aisjying";        /* 缺省发音为迅飞普通话 */
 var tts_vendor = "tts_xunfei";   /* 缺省语音合成使用讯飞 */
-var tilestyle = "tile_slim";     /* 缺省搜索结果以书签形式显示 */
+var tilestyle = "bookmark";      /* 缺省搜索结果以书签形式显示 */
 var mark = "none";               /* 缺省不标注拼音和平仄 */
 var spinner;
 var spinner_target;
@@ -32,7 +42,7 @@ var spinner_opts = {
 function spinner_start(){
 //    console.log("start spinner");
     if ( typeof(spinner_target) == 'undefined') {
-        spinner_target = document.getElementById('spinner-container');
+        spinner_target = document.getElementById('spinner_container');
     }
 //   if ( typeof(spinner) == 'undefined' ) {
         spinner = new Spinner(spinner_opts).spin(spinner_target);
@@ -212,9 +222,9 @@ function display_dialect()
 
 function display_tilestyle()
 {
-    if ( localStorage.getItem('tilestyle') == null || localStorage.getItem('tilestyle') == 'undefined') {
-        if ( ['tile_slim', 'tile_normal'].indexOf(tilestyle) == -1 ) {
-            tilestyle = 'tile_slim';
+    if ( localStorage.getItem('tilestyle') == null || localStorage.getItem('tilestyle') == 'undefined' || ['bookmark', 'card'].indexOf(localStorage.getItem('tilestyle')) == -1 ) {
+        if ( ['bookmark', 'card'].indexOf(tilestyle) == -1 ) {
+            tilestyle = 'bookmark';
         } 
         localStorage.setItem('tilestyle', tilestyle);
     } 
@@ -298,11 +308,9 @@ pz_dict = {
     "\u1e3f": "平"
 }
 
-/*
- * 根据拼音返回韵律
- * 平：一、二、轻声
- * 仄：三、四声
- */
+// 根据拼音返回韵律
+// 平：一、二、轻声
+// 仄：三、四声
 function getpz(ptext) 
 {
     var text = ptext.trim();
@@ -316,6 +324,69 @@ function getpz(ptext)
 
 }
 
+// 根据作品类型判断是否有平仄
 function pzable(category) {
     return (['五言律诗', '五言绝句', '七言律诗', '七言绝句'].indexOf($.t2s(category)) > -1);
+}
+
+// 判断对象是否为空
+function isblank(obj) {
+   var count = 0;
+   if ( obj instanceof Array ) {
+      obj.forEach(function(item, index) { count += isblank(item); });
+   } else if ( typeof(obj) == 'string' ) {
+       count += obj.length;
+   } else if ( typeof(obj) == 'number' || typeof(obj) == 'boolean' ) {
+       count += 1;
+   } else if ( typeof(obj) == 'null' || typeof(obj) == 'undefined' ) {
+       ;
+   } else if ( obj instanceof Object ) {
+       count += Object.keys(obj).length;
+   }
+   return count;
+}
+
+// 生成文本显示HTML，如果是多行文本则以指定的字符分隔
+function show_text(text, separator) {
+    return typeof(text) == 'string' ? text : text.join(separator);
+}
+
+// 判断字符是否是中文字符
+// 不包括中文标点符号
+function is_chinese_char(text) {
+   return g_chinese_char.test(text);
+}
+
+// 判断字符是否是非中文字符
+// 不包括中文标点符号
+function is_nonchinese_char(text) {
+   return g_nonchinese_char.test(text);
+}
+
+// 清除所有非中文字符包括中文标点符号
+function remove_nonchinese(text) {
+   return text.replace(g_nonchinese_all, '');
+}
+
+// 生成显示中文平仄的HTML代码
+function gen_pz_html(data) {
+    var html = '';
+    if ( data.text.length == 0 ) return html;
+    var pindex = 0;
+    for ( var index in data.text ) {
+        if ( is_nonchinese_char(data.text[index]) ) {
+            html += ( index == 0 ? "" : (is_nonchinese_char(data.text[index-1]) ? "" : "</ruby>")) + data.text[index] ;
+            continue;
+        }
+        html += ( index == 0 ? "<ruby>" : ( is_nonchinese_char(data.text[index-1]) ? "<ruby>" : "" )) + data.text[index] + mark_pz(pindex, data) + ( index == data.text.length ? "</ruby>":"" );
+        pindex += 1;
+    }
+    return html;
+}
+// 生成标记单个汉字平仄的HTML代码
+function mark_pz(pindex, data) {
+    var html = "<rt>";
+    html += getpz(data.dan_pinyin[pindex]);
+    html += "</rt>";
+    return html;
 }

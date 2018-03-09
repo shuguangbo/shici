@@ -3,15 +3,6 @@
 var last_value='';  /* 缓存输入区文字 */
 var prepo={};       /* 存储每行文字和拼音，以前缀数字为健值 */
 
-var key_Enter = 13;
-var key_Clear = 12;
-var key_Delete = 46;
-var key_BackSpace = 8;
-var category = {'诗':['五言古诗','五言乐府','五言绝句','五言律诗','七言古诗','七言乐府','七言绝句','七言律诗',"其它"],'词':[],'文':[],'曲':[]};
-var g_chinese_char=/[\u3400-\u9FFF\uF900-\uFAFF]/;
-var g_nonchinese_char=/[^\u3400-\u9FFF\uF900-\uFAFF]/; 
-var g_nonchinese_all=/[^\u3400-\u9FFF\uF900-\uFAFF]+/g; 
-
 // 创建新作品入口
 function new_work() {
     var work = {};
@@ -26,7 +17,7 @@ function edit_work(work) {
     init_cache(work);
     show_work_editor(work);
     ['name', 'author', 'preface', 'lines'].forEach(function(key, index) {
-        clean_get_show(key, key=='lines'?work[key].join('\n'):work[key]);
+        clean_get_show(key, work[key]);
     }); 
     editor_event_handler();
 }
@@ -34,6 +25,11 @@ function edit_work(work) {
 // 显示作品编辑器界面
 function show_work_editor(work) {
   var param = set_param(work);
+
+    console.log("[edit] cache", prepo);
+    console.log("[edit] work", work);
+    console.log("[edit] param", param );
+
   var html = template('template_editor', param);
   $('#workdetailcontent').html(trans_text(html));
   $('#workDetail').modal({
@@ -50,14 +46,11 @@ function save_new() {
         alert(ret);
         return;
     }
-    work.id = md5(work.name + work.author + work.lines[0]);
-//    console.log("work id: " + work.id); 
-//    console.log(work);
     spinner_start();
-    $.post(url, {_xsrf:$.cookie('_xsrf'), work:JSON.stringify(work)}, function(data, status) {
+    $.post(url, {_xsrf:$.cookie('_xsrf'), work:JSON.stringify(work)}).done(function(data, status) {
 //        console.log("data: \n" + data + "\nstatus: " + status);
         $('#workDetail').modal('hide');
-    }, 'json').fail(function(jqXHR, textStatus, errorThrown) {
+    }).fail(function(jqXHR, textStatus, errorThrown) {
         console.log("保存作品详失败: " + textStatus + ": " + errorThrown );
     }).always(function() {
         spinner_stop();
@@ -66,6 +59,7 @@ function save_new() {
 
 // 检查作品必须条目是否满足 
 function check_work(work) {
+    console.log("Check ", work);
     return work.name.trim().length?(work.author.trim().length?(work.type.trim().length?(work.lines.length?(''):"请录入作品正文"):"请录入作品分类"):"请录入作者姓名"):"请录入作品名称"; 
 }
 
@@ -77,6 +71,8 @@ function preview_edit(obj) {
 // 预览当前编辑作品
 function pe_preview(obj) {
     var work = restore_cache(); 
+    console.log("[pe preview] cache", prepo);
+    console.log("[pe preview] restored work", work);
     ret = check_work(work);
     if (ret.trim().length) {
         alert(ret);
@@ -85,17 +81,21 @@ function pe_preview(obj) {
     work.mark = "pinyin";
     work.cnum = cnum;
     var html = template('template_work_detail_body', work);
-    $('.editor-body').html(trans_text(html));
+    $('.editor_body').html(trans_text(html));
     $('#preview_edit').text(trans_text("编辑"));
     $('#preview_edit').attr('title',trans_text("编辑作品"));
+    show_body_event_handler();
 }
 
 // 退出预览回到作品编辑界面
 function pe_edit(obj) {
     var work = restore_cache();
     var param = set_param(work);
+    console.log("[pe edit] cache", prepo);
+    console.log("[pe edit] restored work", work);
+    console.log("[pe edit] param", param );
     var html = template('template_editor_body', param);
-    $('.editor-body').html(trans_text(html));
+    $('.editor_body').html(trans_text(html));
     $('#preview_edit').text(trans_text("预览"));
     $('#preview_edit').attr('title',trans_text("预览作品"));
     // 添加编辑器事件处理器
@@ -110,10 +110,10 @@ function del_work(id) {
     if (!confirm(trans_text("作品删除后不能再恢复，确认删除此作品？"))) return;
 //    console.log("id: " + id);
     spinner_start();
-    $.post(url, {_xsrf:$.cookie('_xsrf'), id:id}, function(data, status) {
+    $.post(url, {_xsrf:$.cookie('_xsrf'), id:JSON.stringify(id)}).done(function(data, status) {
 //        console.log("data: \n" + data + "\nstatus: " + status);
         $('#workDetail').modal('hide');
-    }, 'json').fail(function(jqXHR, textStatus, errorThrown) {
+    }).fail(function(jqXHR, textStatus, errorThrown) {
         console.log("删除作品失败: " + textStatus + ": " + errorThrown );
     }).always(function() {
         spinner_stop();
@@ -124,7 +124,7 @@ function del_work(id) {
 function init_cache(work) {
    /* 清空缓存 */
    for ( var key in prepo ) delete prepo[key]; 
-   ['name', 'author', 'preface', 'lines', 'type', 'category', 'tag', 'analyse', 'comment'].forEach(function(key, index) {
+   ['id', 'name', 'author', 'preface', 'lines', 'type', 'category', 'tag', 'analyse', 'comment'].forEach(function(key, index) {
        prepo[key] = work[key];
    });
 }
@@ -132,32 +132,49 @@ function init_cache(work) {
 // 从缓存中提取作品信息
 function restore_cache(dp=true) {
    var work = blank_work(dp);
+   work.id = prepo.id.trim().length?prepo.id.trim():md5(prepo.name.trim() + prepo.author.trim() + prepo.lines.trim());
+   // 作品名称应该是没有换行，只是按统一风格处理
+   var name = '';
    if ('name' in prepo && prepo.name.length ) {
-       work['name'] = prepo['name'][0].text;
-       work['pname'] = prepo['name'][0].dan_pinyin;
-       if(dp) work['dpname'] = prepo['name'][0].duo_pinyin;
+     for ( var index in prepo.name ) { 
+       name += prepo['name'][index].text + "\n";
+       work['pname'][index] = prepo['name'][index].dan_pinyin;
+       if(dp) work['dpname'][index] = prepo['name'][index].duo_pinyin;
+    }
    }
+   work['name'] = name.trim();
+   // 作者姓名应该是没有换行，只是按统一风格处理
+   var author = '';
    if ('author' in prepo && prepo.author.length ) {
-       work['author'] = prepo['author'][0].text;
-       work['pauthor'] = prepo['author'][0].dan_pinyin;
-       if(dp) work['dpauthor'] = prepo['author'][0].duo_pinyin;
+     for ( var index in prepo.author ) {
+       author += prepo['author'][index].text + "\n";
+       work['pauthor'][index] = prepo['author'][index].dan_pinyin;
+       if(dp) work['dpauthor'][index] = prepo['author'][index].duo_pinyin;
+    }
    }
+   work['author'] = author.trim();
+   var preface = '';
    if ('preface' in prepo && prepo.preface.length ) {
-       work['preface'] = prepo['preface'][0].text;
-       work['ppreface'] = prepo['preface'][0].dan_pinyin;
-       if(dp) work['dppreface'] = prepo['preface'][0].duo_pinyin;
+     for ( var index in prepo.preface ) {
+       preface += prepo['preface'][index].text + "\n";
+       work['ppreface'][index] = prepo['preface'][index].dan_pinyin;
+       if(dp) work['dppreface'][index] = prepo['preface'][index].duo_pinyin;
+    }
    }
+   work['preface'] = preface.trim();
+   var lines = '';
    if ('lines' in prepo && prepo.lines.length ) {
        for ( var index in prepo.lines ) {
-           work['lines'][index] = prepo['lines'][index].text;
+           lines += prepo['lines'][index].text + '\n';
            work['plines'][index] = prepo['lines'][index].dan_pinyin;
            if(dp) work['dplines'][index] = prepo['lines'][index].duo_pinyin;
        }
    }
+   work['lines'] = lines.trim();
    ['type', 'category', 'tag', 'analyse', 'comment'].forEach(function(key, index) {
        work[key] = prepo[key];
    });
-
+   // 自动将作品名称、作者、类型、分类加入标签中
    [work['name'], work['author'], work['type'], work['category']].forEach(function(key, index) {
        if ( key.length && work['tag'].indexOf(key) == -1 ) work['tag'].push(key);
    });
@@ -185,7 +202,7 @@ function is_blank_cache() {
  */
 function key_pressed(event) {
     if (!event) event = window.event;
-    var id = this.id.split('-')[0];
+    var id = this.id.split('_')[0];
     var text = $.t2s(this.value.trim());
 
     /* 清除显示区，从服务器取得拼音和注释然后再显示 */
@@ -193,7 +210,7 @@ function key_pressed(event) {
 
     /* 在单行输入框中按下回车后隐藏输入框 */
     if ((event.keyCode || event.which ) == key_Enter) {
-        var input_id = "#" + id + "-input";
+        var input_id = "#" + id + "_input";
         if ( $(input_id).attr('type') == 'text') {
             $(input_id).hide();
         }
@@ -205,11 +222,11 @@ function key_pressed(event) {
  * 从服务器得到文本对应的拼音和注释并显示
  */
 function clean_get_show(id, text) {
-    var output_id = "#" + id + "-output";
+    var output_id = "#" + id + "_output";
     var html = '';
 
-    var show_pinyin = $(output_id).attr('data-show-pinyin') == 'true'?true:false;
-    var show_comment = $(output_id).attr('data-show-comment') == 'true'?true:false;
+    var show_pinyin = $(output_id).attr('data_show_pinyin') == 'true'?true:false;
+    var show_comment = $(output_id).attr('data_show_comment') == 'true'?true:false;
 
     if ( text.length == 0 ) {
         // 清空缓存
@@ -257,8 +274,8 @@ function clean_get_show(id, text) {
 function get_pinyin(param) {
     var id = param.id, index = param.index, text = param.text, show_pinyin = param.show_pinyin, show_comment = param.show_comment;
     var url = "/v1/pinyin";
-    var display_id = "#" + id + "-" + index;
-    $.post(url, {_xsrf:$.cookie('_xsrf'), text:JSON.stringify(text)}, 'json')
+    var display_id = "#" + id + "_" + index;
+    $.post(url, {_xsrf:$.cookie('_xsrf'), text:JSON.stringify(text)})
       .done(function(data) {
           var html = '';
           var pinyin = JSON.parse(data);
@@ -285,9 +302,9 @@ function get_pinyin(param) {
 function get_comment(param) {
     var id = param.id, index = param.index, text = param.text, show_pinyin = param.show_pinyin, show_comment = param.show_comment;
     var url = "/v1/comment"
-    var comment_display_id = "#" + id + "-" + index + "-comment-display";
-    var comment_input_id = "#" + id + "-" + index + "-comment-input";
-    $.post(url, {_xsrf:$.cookie('_xsrf'), text:JSON.stringify(text)}, 'json')
+    var comment_display_id = "#" + id + "_" + index + "_comment_display";
+    var comment_input_id = "#" + id + "_" + index + "_comment_input";
+    $.post(url, {_xsrf:$.cookie('_xsrf'), text:JSON.stringify(text)})
       .done(function(data) {
           var html = '';
           // 合并获得的注释和缓存中的注释
@@ -353,19 +370,19 @@ function blank_work(dp=true) {
     author:'',           // 作者
     preface:'',          // 序
     category:'五言古诗', // 体裁 - 五言绝句、五言律诗等
-    lines:[],            // 诗句
-    plines:[],           // 诗句 - 拼音
-    pname:[],            // 作品名称 - 拼音
-    pauthor:[],          // 作者 - 拼音
-    ppreface:[],         // 序 - 拼音
-    dpname:[],
-    dpauthor:[],
-    dppreface:[],
-    dplines:[[]],
+    lines:'',            // 正文
+    plines:[],           // 正文 - 拼音 单音
+    pname:[],            // 作品名称 - 拼音 单音
+    pauthor:[],          // 作者 - 拼音 单音
+    ppreface:[],         // 序 - 拼音 单音
+    dpname:[],           // 作品名称 - 拼音 多音
+    dpauthor:[],         // 作者名称 - 拼音 多音
+    dppreface:[],        // 序 - 拼音 多音
+    dplines:[[]],        // 正文 - 拼音 多音
     tag:[],              // 标签
     url:'',              // 指向百科的链接
     comment:{name:[],preface:[],lines:[]},          // 注释
-    analyse:[]           // 赏析
+    analyse:''           // 赏析
     };
 
     if ( !dp ) ['dpname', 'dpauthor', 'dppreface', 'dplines'].forEach(function(value, index) { delete work[value]; });
@@ -382,9 +399,9 @@ function set_param(work)
      type: { config:{control_input:'select', options:['诗','词','文','曲'], show_pinyin:false, show_comment:false}, id:'type', text:work.type},
      category: { config:{control_input:'select', options:category[work.type], show_pinyin:false}, id:'category', text:work.category},
      preface: { config:{control_input:'textarea', size:500, show_pinyin:true, show_comment:true}, id:'preface', text:work.preface, ptext:work.ppreface, dptext:'dppreface' in work?work.dppreface:[], comment:'preface' in work.comment?work.comment.preface:[], placeholder:'在这里输入序言，支持回车换行。', title:'双击鼠标左键编辑序言'},
-     lines: { config:{control_input:'textarea', size:1000, show_pinyin:true, show_comment:true}, id:'lines', text:work.lines, ptext:work.plines, dptext:'dplines' in work?work.dplines:bdptext(work.lines.length), comment:'lines' in work.comment?work.comment.lines:[], placeholder:'在这里输入正文，支持回车换行。', title:'双击鼠标左键编辑正文'},
-     tag: { config:{control_input:'textarea', show_pinyin:false, show_comment:false}, id:'tag', text:work.tag.join(' '), ptext:'', comment:[], placeholder:'在这里输入标签，以空格分隔。', title:'双击鼠标左键编辑标签' },
-     analyse: { config:{control_input:'textarea', show_pinyin:false, show_comment:false}, id:'analyse', text:work.analyse, ptext:'', comment:[], placeholder:'在这里输入作品赏析，支持回车换行。', title:'双击鼠标左键编辑赏析' }
+     lines: { config:{control_input:'textarea', size:1000, show_pinyin:true, show_comment:true}, id:'lines', text:work.lines, ptext:work.plines, dptext:'dplines' in work?work.dplines:bdptext(work.lines.split('\n').length), comment:'lines' in work.comment?work.comment.lines:[], placeholder:'在这里输入正文，支持回车换行。', title:'双击鼠标左键编辑正文'},
+     tag: { config:{control_input:'textarea', show_pinyin:false, show_comment:false}, id:'tag', text:work.tag.join(' '), ptext:[],dptext:[], comment:[], placeholder:'在这里输入标签，以空格分隔。', title:'双击鼠标左键编辑标签' },
+     analyse: { config:{control_input:'textarea', show_pinyin:false, show_comment:false}, id:'analyse', text:work.analyse, ptext:[], dptext:[], comment:[], placeholder:'在这里输入作品赏析，支持回车换行。', title:'双击鼠标左键编辑赏析' }
   }
 }
 // 根据作品正文行数生成对应的空白多音字数组
@@ -397,9 +414,9 @@ function bdptext(num) {
 
 // 更新用户选择的多音字读音并保存到缓存中
 function upd_pinyin(obj) {
-    var id = obj.id.split('-')[0];
-    var section = Number(obj.id.split('-')[1]);
-    var index = Number(obj.id.split('-')[2]);
+    var id = obj.id.split('_')[0];
+    var section = Number(obj.id.split('_')[1]);
+    var index = Number(obj.id.split('_')[2]);
     var selection = obj.value;
 
     var dan_pin = prepo[id][section]['dan_pinyin'][index];
@@ -409,7 +426,7 @@ function upd_pinyin(obj) {
 }
 // 更新作品类型并保存到缓存中
 function upd_type(obj) {
-    var id = obj.id.split('-')[0];
+    var id = obj.id.split('_')[0];
     prepo[id] = $.t2s(obj.value);
     list_category(obj.value);
     init_category(obj.value);
@@ -420,16 +437,16 @@ function init_category(type) {
 }
 // 更新作品
 function upd_category(obj) {
-    var id = obj.id.split('-')[0];
+    var id = obj.id.split('_')[0];
     prepo[id] = $.t2s(obj.value);
 }
 // 更新作品标签并保存到缓存中
 function upd_tag(obj) {
-    var id = obj.id.split('-')[0];
+    var id = obj.id.split('_')[0];
     prepo[id] = $.t2s(obj.value).split(' '); 
     // 更新标签显示区
-    var output_id = '#' + id + '-output';
-    var html = show_output({id:id, text:$(obj).val().trim(), ptext:[], dptext:[], comment:[], show_pinyin:$(output_id).attr('data-show-pinyin')=='true'?true:false, show_comment:$(output_id).attr('data-show-comment')=='true'?true:false});
+    var output_id = '#' + id + '_output';
+    var html = show_output({id:id, text:$(obj).val().trim(), ptext:[], dptext:[], comment:[], show_pinyin:$(output_id).attr('data_show_pinyin')=='true'?true:false, show_comment:$(output_id).attr('data_show_comment')=='true'?true:false});
     $(output_id).html(trans_text(html));
     $(output_id).show();
     // 如果标签输入区有内容则隐藏标签输入区
@@ -437,15 +454,15 @@ function upd_tag(obj) {
 }
 // 更新作品赏析区并保存到缓存中
 function upd_analyse(obj) {
-    var id = obj.id.split('-')[0];
+    var id = obj.id.split('_')[0];
     var value = $.t2s(obj.value.trim());
 
     if ( value.length == 0 ) return;
 
-    prepo[id] = value.split('\n'); 
+    prepo[id] = value;
     // 更新作品赏析显示区
-    var output_id = '#' + id + '-output';
-    var html = show_output({id:id, text:prepo[id], ptext:[], dptext:[], comment:[], show_pinyin:$(output_id).attr('data-show-pinyin')=='true'?true:false, show_comment:$(output_id).attr('data-show-comment')=='true'?true:false});
+    var output_id = '#' + id + '_output';
+    var html = show_output({id:id, text:prepo[id], ptext:[], dptext:[], comment:[], show_pinyin:$(output_id).attr('data_show_pinyin')=='true'?true:false, show_comment:$(output_id).attr('data_show_comment')=='true'?true:false});
     $(output_id).html(trans_text(html));
     $(output_id).show();
     // 如果作品赏析输入区有内容则隐藏赏析输入区
@@ -453,9 +470,9 @@ function upd_analyse(obj) {
 }
 // 更新作品注释并保存到缓存中
 function upd_comment(obj) {
-    var id = obj.id.split('-')[0];
-    var index = obj.id.split('-')[1];
-    var cd_id = "#" + id + "-" + index + "-comment-display";
+    var id = obj.id.split('_')[0];
+    var index = obj.id.split('_')[1];
+    var cd_id = "#" + id + "_" + index + "_comment_display";
     var ta = $.t2s(obj.value.trim()).split('\n');
     var to = [];
     var count = 0;
@@ -504,16 +521,18 @@ function list_category(type) {
     for ( var index in category[type] ) {
         html+="<option value=\"" + category[type][index] + "\" " + ">" + category[type][index] + "</option>";
     }
-    $('#category-input').show();
-    category[type].length == 0 ? $('#category-input').hide() : $('#category-input').html(trans_text(html));
+    $('#category_input').show();
+    category[type].length == 0 ? $('#category_input').hide() : $('#category_input').html(trans_text(html));
 }
 // 生成显示区对应的HTML
 function show_output(data) {
+   console.log("Data ", data);
    var html='';
-   if ( typeof(data.text) == 'string' ) {
-       var param = {};
-       Object.assign(param, data, {index:0});
-       html += output_item(param);
+   if ( typeof(data.text) == 'string' ){
+       data.text.split('\n').forEach(function(value, index ) {
+          var param = {id:data.id, index:index, text:value, ptext:index in data.ptext?data.ptext[index]:[], dptext:index in data.dptext?data.dptext[index]:[], comment:index in data.comment?data.comment[index]:[], show_pinyin:data.show_pinyin, show_comment:data.show_comment};
+          html += output_item(param);
+       });
    } else {
       data.text.forEach(function(value, index) {
           var param = {id:data.id, index:index, text:value, ptext:data.ptext[index], dptext:data.dptext[index], comment:data.comment[index], show_pinyin:data.show_pinyin, show_comment:data.show_comment};
@@ -524,6 +543,23 @@ function show_output(data) {
 }
 
 /*
+function show_output(data) {
+   var html='';
+   if ( typeof(data.text) == 'string' ) {
+       var param = {};
+       Object.assign(param, data, {index:0});
+       html += output_item(param);
+   } else {
+      data.text.forEach(function(value, index) {
+          var param = {id:data.id, index:index, text:value, ptext:data.ptext[index], dptext:data.dptext[index], comment:data.comment[index], show_pinyin:data.show_pinyin, show_comment:data.show_comment};
+          html += output_item(param);
+      });
+   }
+   return html;
+}
+*/
+
+/*
  * 输出单元布局
  * 【文字和拼音显示区】
  * 【注释显示区】
@@ -532,9 +568,9 @@ function show_output(data) {
 // 生成输出单元的HTML
 function output_item(data) {
    var html = '';
-   var pinyin_id = data.id + "-" + data.index;
-   var cd_id = data.id + '-' + data.index + "-comment-display";
-   var ci_id = data.id + '-' + data.index + "-comment-input";
+   var pinyin_id = data.id + "_" + data.index;
+   var cd_id = data.id + '_' + data.index + "_comment_display";
+   var ci_id = data.id + '_' + data.index + "_comment_input";
 
     html += "<div id=\"" + pinyin_id + "\" class=\"output_item\" >";
     data.show_pinyin ? html += pin(data.id, data.index, data.text, data.ptext, data.dptext) : html += show_text(data.text, '\n'); 
@@ -561,55 +597,10 @@ function show_comment_v2(comment) {
     return html;
 }
 
-// 生成文本显示HTML，如果是多行文本则以指定的字符分隔
-function show_text(text, separator) {
-    return typeof(text) == 'string' ? text : text.join(separator);
-}
-
-// 判断字符是否是中文字符
-// 不包括中文标点符号
-function is_chinese_char(text) {
-   return g_chinese_char.test(text);
-}
-
-// 判断字符是否是非中文字符
-// 不包括中文标点符号
-function is_nonchinese_char(text) {
-   return g_nonchinese_char.test(text);
-}
-
-// 清除所有非中文字符包括中文标点符号
-function remove_nonchinese(text) {
-   return text.replace(g_nonchinese_all, '');
-}
-
-// 生成显示中文平仄的HTML代码
-function gen_pz_html(data) {
-    var html = '';
-    if ( data.text.length == 0 ) return html;
-    var pindex = 0;
-    for ( var index in data.text ) {
-        if ( is_nonchinese_char(data.text[index]) ) {
-            html += ( index == 0 ? "" : (is_nonchinese_char(data.text[index-1]) ? "" : "</ruby>")) + data.text[index] ;
-            continue;
-        }
-        html += ( index == 0 ? "<ruby>" : ( is_nonchinese_char(data.text[index-1]) ? "<ruby>" : "" )) + data.text[index] + mark_pz(pindex, data) + ( index == data.text.length ? "</ruby>":"" );
-        pindex += 1;
-    }
-    return html;     
-}
-// 生成标记单个汉字平仄的HTML代码
-function mark_pz(pindex, data) {
-    var html = "<rt>";
-    html += getpz(data.dan_pinyin[pindex]);
-    html += "</rt>";
-    return html;
-}
-
 // 函数：生成显示中文和拼音的HTML文本
-// 参数：data.text - 中文文本 格式为字符串
-// 参数：data.dan_pinyin - 一字一音 格式为数组 数组元素为对应中文的拼音字符串
-// 参数：data.duo_pinyin - 包含多音字的所有读音 格式为数组 数组元素为对应中文的拼音数组
+// 参数：data.text _ 中文文本 格式为字符串
+// 参数：data.dan_pinyin _ 一字一音 格式为数组 数组元素为对应中文的拼音字符串
+// 参数：data.duo_pinyin _ 包含多音字的所有读音 格式为数组 数组元素为对应中文的拼音数组
 // 注意：通过pypinyin得到的拼音数组中，不包括标点符号，因此文本数组的大小和拼音数组大小不是对应的。比如下面文本中逗号后有空格，文本大小是4，而拼音大小则是2
 //       text: "我， 们", dan_pinyin: ["wǒ", "men"], duo_pinyin: [["wǒ"], ["men"]] 
 function gen_pinyin_html(data) {
@@ -630,12 +621,12 @@ function gen_pinyin_html(data) {
 
 // 函数：生成显示单个汉字拼音的HTML代码, 支持多音字并列出所有读音
 // 参数：pindex - 对应拼音数组的下标
-// 参数：data.dan_pinyin - 一字一音 格式为数组 数组元素为对应中文的拼音字符串
-// 参数：data.duo_pinyin - 包含多音字的所有读音 格式为数组 数组元素为对应中文的所有读音 
+// 参数：data.dan_pinyin _ 一字一音 格式为数组 数组元素为对应中文的拼音字符串
+// 参数：data.duo_pinyin _ 包含多音字的所有读音 格式为数组 数组元素为对应中文的所有读音 
 function mark_pinyin(pindex, data) {
     var html = "<rt>";
     if (('duo_pinyin' in data) && (pindex in data.duo_pinyin) && ( typeof data.duo_pinyin[pindex] == 'object') && (data.duo_pinyin[pindex].length > 1 )) {
-        html += "<select id=\"" + data.id + "-" + data.section + "-" + pindex + "\" >";
+        html += "<select id=\"" + data.id + "_" + data.section + "_" + pindex + "\" >";
         for ( var num in data.duo_pinyin[pindex] ) {
            html += "<option value=\"" + data.duo_pinyin[pindex][num] + "\" " + ( data.duo_pinyin[pindex][num] == data.dan_pinyin[pindex] ? " selected >" : ">" ) + data.duo_pinyin[pindex][num] + "</option>";
         }
@@ -673,7 +664,7 @@ function editor_header_event_handler() {
 // 设置作品编辑器中部各单元事件处理器
 function editor_body_event_handler() {
     ['type','category'].forEach(function(id) {
-        var input_id  = '#' + id + '-input';
+        var input_id  = '#' + id + '_input';
         $(input_id).on('mouseover', function() {
             $(this).focus();
         });
@@ -689,10 +680,10 @@ function editor_body_event_handler() {
         });
     });
     ['name','author','preface','lines','tag','analyse'].forEach(function(id) {
-        var output_id = '#' + id + '-output';
-        var input_id  = '#' + id + '-input';
-        var show_pinyin  = $(output_id).attr('data-show-pinyin')  == 'true'?true:false;
-        var show_comment = $(output_id).attr('data-show-comment') == 'true'?true:false;
+        var output_id = '#' + id + '_output';
+        var input_id  = '#' + id + '_input';
+        var show_pinyin  = $(output_id).attr('data_show_pinyin')  == 'true'?true:false;
+        var show_comment = $(output_id).attr('data_show_comment') == 'true'?true:false;
        
         // 条目输出显示区双击或鼠标悬停则显示输入区 
         $(output_id).on('mouseover', function() { show_input(input_id); });
@@ -716,7 +707,7 @@ function editor_body_event_handler() {
 
 // 文本输入框失焦事件处理器 - 更新对应的缓存
 function upd_value(obj) {
-    var id = obj.id.split('-')[0];
+    var id = obj.id.split('_')[0];
     switch(id) {
         case 'analyse':
             upd_analyse(obj);
@@ -730,9 +721,9 @@ function upd_value(obj) {
 // 添加编辑器中部含拼音输出或注释各单元事件处理器
 function editor_pinyin_comment_event_handler() {
     ['name', 'author', 'preface', 'lines'].forEach(function(id, index) {
-        var output_id = "#" + id + "-output";
-        var show_pinyin  = $(output_id).attr('data-show-pinyin')  == 'true'?true:false;
-        var show_comment = $(output_id).attr('data-show-comment') == 'true'?true:false;
+        var output_id = "#" + id + "_output";
+        var show_pinyin  = $(output_id).attr('data_show_pinyin')  == 'true'?true:false;
+        var show_comment = $(output_id).attr('data_show_comment') == 'true'?true:false;
         var param = { id:id, show_pinyin:show_pinyin, show_comment:show_comment};
         editor_item_output_event_handler(param); 
         editor_item_comment_event_handler(param); 
@@ -746,9 +737,9 @@ function editor_item_output_event_handler(config) {
     var show_comment = config.show_comment;
     var show_pinyin  = config.show_pinyin;
     prepo[id].forEach(function(item, index) {
-        var item_output_id = '#' + id + '-' + index;
-        var item_cd_id = '#' + id + '-' + index + "-comment-display";
-        var item_ci_id = '#' + id + '-' + index + "-comment-input";
+        var item_output_id = '#' + id + '_' + index;
+        var item_cd_id = '#' + id + '_' + index + "_comment_display";
+        var item_ci_id = '#' + id + '_' + index + "_comment_input";
 
         if ( show_comment ) {
             // 文本输出显示单元单击事件外理器 - 显示注释输入区，并阻止冒泡
@@ -760,7 +751,7 @@ function editor_item_output_event_handler(config) {
         if ( show_pinyin ) {
             if('duo_pinyin' in prepo[id][index]) prepo[id][index].duo_pinyin.forEach(function(v,i) {
                 if ( typeof(v) == 'object' && v.length ) {
-                    var dp_id = '#' + id + '-' + index + '-' + i;
+                    var dp_id = '#' + id + '_' + index + '_' + i;
                     // 鼠标悬停事件外理器 - 获得焦点
                     $(dp_id).on('mouseover', function(event) { this.focus(); event.stopPropagation();});
                     // 多音字拼音改变事件处理器 - 更新缓存
@@ -779,9 +770,9 @@ function editor_item_comment_event_handler(config) {
     var show_comment = config.show_comment;
     var show_pinyin  = config.show_pinyin;
     prepo[id].forEach(function(item, index) {
-        var item_output_id = '#' + id + '-' + index;
-        var item_cd_id = '#' + id + '-' + index + "-comment-display";
-        var item_ci_id = '#' + id + '-' + index + "-comment-input";
+        var item_output_id = '#' + id + '_' + index;
+        var item_cd_id = '#' + id + '_' + index + "_comment_display";
+        var item_ci_id = '#' + id + '_' + index + "_comment_input";
 
         if ( show_comment ) {
             // 注释显示区点击事件外理器 - 隐藏注释显示区
@@ -801,38 +792,6 @@ function editor_item_comment_event_handler(config) {
             $(item_ci_id).on('mouseover', function(event) { event.stopPropagation(); });
         }
    });
-}
-
-// 删除编辑器条目中元素的事件处理器
-function rm_item_ehandler(config) {
-    // console.log("进入事件处理器删除函数");
-    var id = config.id;
-    var show_comment = config.show_comment;
-    var show_pinyin  = config.show_pinyin;
-    prepo[id].forEach(function(item, index) {
-        var item_output_id = '#' + id + '-' + index;
-        var item_cd_id = '#' + id + '-' + index + "-comment-display";
-        var item_ci_id = '#' + id + '-' + index + "-comment-input";
-
-        if ( show_comment ) {
-            $(item_output_id).off('mouseover');
-            $(item_cd_id).off('click');
-            $(item_ci_id).off('focus');
-            $(item_ci_id).off('blur');
-            $(item_ci_id).off('change');
-        }
-        // 在有多音字的输出显示区，单击多音字则修改多音字的拼音
-        if ( show_pinyin ) {
-            if('duo_pinyin' in prepo[id][index]) prepo[id][index].duo_pinyin.forEach(function(v,i) {
-                if ( typeof(v) == 'object' && v.length ) {
-                    var dp_id = '#' + id + '-' + index + '-' + i;
-                    $(dp_id).off('change');
-                    $(dp_id).off('mouseover');
-                    $(dp_id).off('click');
-                }
-            });
-        }
-    });
 }
 
 // 模板辅助函数，判断是汉字还是标点符号
@@ -861,16 +820,13 @@ template.helper('tf', function(value) {
    return value ? "true" : "false";
 });
 
-template.helper('blank', function(data) {
-});
-
 </script>
 
 {# 诗词编辑界面模版 总体布局 #}
 <script id="template_editor" type="text/html">
-  <div class="editor-header"  > <% include('template_editor_header') %> </div> 
-  <div class="editor-body"    > <% include('template_editor_body')   %> </div> 
-  <div class="editor-footer"  > <% include('template_editor_footer') %> </div> 
+  <div class="editor_header"  > <% include('template_editor_header') %> </div> 
+  <div class="editor_body"    > <% include('template_editor_body')   %> </div> 
+  <div class="editor_footer"  > <% include('template_editor_footer') %> </div> 
 </script>
 
 {# 诗词编辑界面模版：编辑界面头部区 显示功能按钮 #}
@@ -924,19 +880,19 @@ template.helper('blank', function(data) {
 
 {# 诗词编辑界面模版：编辑界面主体区 单项编辑界面 #}
 <script id="template_editor_item"  type="text/html">
-<div id="<%=# id %>-editor" class="editor_item">
-  <div id="<%=# id %>-output-container" class="editor_item_output">
+<div id="<%=# id %>_editor" class="editor_item">
+  <div id="<%=# id %>_output_container" class="editor_item_output">
       <% var data = {id:id, text:text, ptext:ptext, dptext:dptext, comment:comment, show_pinyin:config.show_pinyin, show_comment:config.show_comment}; %>
-      <div id="<%=# id %>-output" class="item_output" data-show-pinyin="<%=# tf(config.show_pinyin) %>" data-show-comment="<%=# tf(config.show_comment) %>" title="<%=# title %>"><%=# show_output_v1(data) %>
+      <div id="<%=# id %>_output" class="item_output" data_show_pinyin="<%=# tf(config.show_pinyin) %>" data_show_comment="<%=# tf(config.show_comment) %>" title="<%=# title %>"><%=# show_output_v1(data) %>
       </div>
   </div>
-  <div id="<%=# id %>-input-container" class="editor_item_input">
+  <div id="<%=# id %>_input_container" class="editor_item_input">
     <% if ( config.control_input == 'input' ) { %>
       {# 单行文本输入 #}
-      <input id="<%=# id %>-input" type="text" placeholder="<%=# placeholder %>" value="<%=# show_text_v1(text, ' ') %>" data-show-pinyin="<%=# tf(config.show_pinyin) %>" data-show-comment="<%=# tf(config.show_comment) %>" <% if ( text.length ) { %> hidden <% } %>></input>
+      <input id="<%=# id %>_input" type="text" placeholder="<%=# placeholder %>" value="<%=# show_text_v1(text, ' ') %>" data_show_pinyin="<%=# tf(config.show_pinyin) %>" data_show_comment="<%=# tf(config.show_comment) %>" <% if ( text.length ) { %> hidden <% } %>></input>
     <% } else if ( config.control_input == 'textarea' ) { %>
       {# 多行文本输入 #}
-      <textarea id="<%=# id %>-input" type="textarea" placeholder="<%=# placeholder %>" rows="<%=# text.length %>" maxlength="<%=# config.size %>" data-show-pinyin="<%=# tf(config.show_pinyin) %>" data-show-comment="<%=# tf(config.show_comment) %>" <% if ( text.length ) { %> hidden <% } %> ><%=# show_text_v1(text, '\n') %></textarea>
+      <textarea id="<%=# id %>_input" type="textarea" placeholder="<%=# placeholder %>" rows="<%=# text.length %>" maxlength="<%=# config.size %>" data_show_pinyin="<%=# tf(config.show_pinyin) %>" data_show_comment="<%=# tf(config.show_comment) %>" <% if ( text.length ) { %> hidden <% } %> ><%=# show_text_v1(text, '\n') %></textarea>
     <% } %>
   </div>
 </div>
@@ -944,9 +900,73 @@ template.helper('blank', function(data) {
 
 <script id="template_editor_select" type="text/html">
 <div>
-  <select id="<%=# id %>-input" <% if (config.options.length == 0 ) { %>hidden<% } %>>
+  <select id="<%=# id %>_input" <% if (config.options.length == 0 ) { %>hidden<% } %>>
      <%=# list_options(config.options, text) %> 
   </select>
 </div>
 </script>
 
+{# 作品编辑器显示风格控制区 #}
+<style>
+.editor_body {
+    background-color: #c2c8f6;
+    padding: 10px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+}
+.editor_header, .editor_footer {
+    background-color: #FFF8DC;
+    cursor: pointer;
+    opacity: 0.5;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+}
+.editor_body {
+    background-color: #c2c8f6;
+}
+.editor_work_item {
+    width: 100%;
+}
+.editor_sub_container {
+   width: 100%;
+   padding: 5px;
+   display: flex;
+   flex-direction: row;
+   justify-content: center;
+   align-items: center;
+}
+.editor_item, .editor_item_output, .editor_item_input {
+   width: 100%;
+   display: flex;
+   flex-direction: column;
+   justify-content: center;
+   flex-wrap: wrap;
+   align-items: center;
+}
+
+.editor_item_type {
+   width: 100%;
+   display: flex;
+   flex-direction: row;
+   justify-content: center;
+   align-items: center;
+}
+
+.item_output {
+   width: 100%;
+   display: flex;
+   flex-direction: column;
+   justify-content: center;
+   align-items: center;
+}
+
+.output_item {
+   padding: 5px;
+}
+</style>

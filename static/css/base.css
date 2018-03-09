@@ -1,19 +1,14 @@
-.container-fixed-width {
-    margin: 0 auto;
-    width: 80%;
-}
-
 /*
  * 弹性框定义页面三段式布局 : 头体脚
  */
-.page-container {
+.page_container {
     width: 100%;
     display: flex;
     align-items: center;
     flex-wrap: wrap;
 }
 /* 页面布局子项 */
-.page-item {
+.page_item {
     width: 100%;
     margin: auto;
 }
@@ -43,120 +38,4 @@ body.home {
     background-color: #FFF8DC;
     cursor: pointer;
     opacity: 0.5;
-}
-
-.editor-header, .editor-footer {
-    background-color: #FFF8DC;
-    cursor: pointer;
-    opacity: 0.5;
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px;
-}
-
-.modal-body, .editor-body {
-    background-color: #c2c8f6;
-}
-
-.icon {
-   width: 1em; height: 1em;
-   vertical-align: -0.15em;
-   fill: currentColor;
-   overflow: hidden;
-}
-
-.navigation-bar-container {
-    position: fixed;
-    width: 100%;
-    height: 50px;
-    left: 0px;
-    top: 0px;
-    display: flex;
-    padding-left: 10%;
-    padding-right: 10%;
-    background-color: GhostWhite;
-    justify-content: space-between; 
-    flex-wrap: wrap;
-    align-items: center;
-    z-index: 1;
-}
-
-.navigation-bar-item a {
-    text-decoration: none;
-}
-
-.search-box {
-    border: none;
-    border-radius: 5px;
-    width: 220px;
-    height: 30px; 
-    padding: 5px;
-    margin: 5px;
-    font-size: 14px;
-    box-shadow: 0px 0px 1px 1px LightGrey;  
-}
-.search-box:focus {
-    box-shadow: 0px 0px 1px 1px #c2c8f6;  
-    border: none;
-}
-
-.menu-bar-container {
-    width: 100%;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    align-items: center;
-}
-.menu-bar-item {
-    padding: 0px 1px;
-}
-
-.config-panel-container {
-    width: 100%;
-    display: flex;
-    flex-wrap: wrap;
-    flex-direction: row;
-    justify-content: space-between; 
-    background-color: GhostWhite;
-    padding: 0px 10px 10px 10px;
-}
-
-@media only screen and (max-width: 550px) {
-.container-fixed-width {
-    width: 90%;
-}
-.navigation-bar-container {
-    padding-left: 5%;
-    padding-right: 5%;
-}
-.navigation-bar-item {
-    margin: 5px 0px;
-}
-body {
-    font-size: 16px;
-}
-}
-
-@media only screen and (max-width: 470px) {
-.container-fixed-width {
-    width: 95%;
-}
-.navigation-bar-item {
-    margin: 0px 0px;
-}
-body {
-    font-size: 16px;
-}
-.navigation-bar-container {
-    padding-left: 2.5%;
-    padding-right: 2.5%;
-}
-.navigation-bar-item {
-    margin: 5px 0px;
-}
-#logo {
-    display: none;
-}
 }

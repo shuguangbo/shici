@@ -28,11 +28,12 @@ class BaseHandler(tornado.web.RequestHandler, TemplateRendering):
     """
     def initializa(self):
         pass
-
+    # does not work
     def get_json(self):
         args = json_decode(self.request.body)
         return args if args else None
 
+    # does not work
     def get_json_argument(self, name, default = None):
         args = json_decode(self.request.body)
         name = to_unicode(name)

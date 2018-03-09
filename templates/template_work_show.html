@@ -7,7 +7,7 @@ var last_id;
 // 1 - 20 within a circle like ① 
 var cnum=['\u2460','\u2461', '\u2462', '\u2463', '\u2464','\u2465','\u2466','\u2467','\u2468','\u2469','\u246a','\u246b','\u246d','\u246e','\u246f','\u2470','\u2471','\u2472','\u2473']
 
-// Detect return in search input box, then trigger search work action
+// 事件处理器 
 function search_key_press(e, obj) {  
     if (!e) e = window.event;  
     if ((e.keyCode || e.which) == 13) {  
@@ -60,25 +60,20 @@ function search_work(obj) {
 
 
 function display_search_result(work_set) {
+  console.log("search result item number: " + work_set.length);
+  console.log("display style: " + tilestyle);
   if ( work_set.length == 0 ) {
       return 0;
   }
-
-  var html= '<div class="shici_container" >';
-  for ( var index in work_set ) {
-      work_set[index].plines = [];
-      work_set[index].tilestyle = tilestyle;
-      html += template('template_work_tile', work_set[index]);
-  }
-  html += '</div >';
+  var html = template('template_work_search_result', {wsrs: tilestyle, works:work_set});
+  console.log(html);
   $('#content').html(trans_text(html));
   // 添加搜索结果事件处理器 
   search_result_event_handler();
 }
 
-//  诗词详细模板渲染入口
+//  作品详细模板渲染入口
 function get_work(id) {
-//    var id = obj.id;
     var url = "/v1/get";
 
     if ( last_id == id ) {
@@ -129,6 +124,7 @@ function update_work_detail_body() {
     work.mark = pzable(work.category)?mark:(mark=='pz'?'none':mark);
     var html= template('template_work_detail_body_zw', work);
     $('#work_body').html(trans_text(html));
+    show_body_event_handler();
 }
 
 /*
@@ -147,7 +143,7 @@ function firstsection(text) {
 function search_result_event_handler() {
     work_set.forEach(function(item, index) {
         var id = "#" + item.id;
-        //console.log("为诗词" + item.id + "添加事件处理器");
+        //console.log("为作品" + item.id + "添加事件处理器");
         // 从服务器拿到作品详细信息并在显示区显示
         $(id).on('click', function() { get_work(item.id);});
     });
@@ -167,7 +163,7 @@ function show_header_event_handler() {
     // 朗读作品
     $('#readwork').on('click', function() {
         // work是全局变量，保存当前作品显示区内作品的信息
-        var tts = [work.name, work.author, work.preface, work.lines.join(' ')].join(' '); 
+        var tts = [work.name, work.author, work.preface, work.lines].join(' '); 
         read_work(tts);
     });
     // 显示拼音
@@ -184,15 +180,28 @@ function show_body_event_handler() {
    // 显示隐藏作品正文
    $('#work_body_prompt').on('click', function() { $('#work_body').toggle(); });
    // 显示隐藏作品名称注释
-   $('#work_name').on('click', function() { $('#name_comment').toggle(); });
+   work.name.split('\n').forEach(function(item, index) {
+     var nid = "#work_name_" + index, cid="#name_comment_" + index;
+     $(nid).on('click', function() { $(cid).toggle(); });
+     $(nid).on('mouseover', function() { $(cid).show(); });
+     $(nid).on('mouseout', function() { $(cid).hide(); });
    // 查看作者生平介绍
-   $('#work_author').on('click', function() { window.open('http://baike.baidu.com/item/' + work.author ); });
+     var aid = "#work_author_" + index;
+     $(aid).on('click', function() { window.open('http://baike.baidu.com/item/' + work.author ); });
+   });
    // 显示隐藏作品序言
-   $('#work_preface').on('click', function() { $('#preface_comment').toggle(); });
+   work.preface.split('\n').forEach(function(item, index) {
+     var pid = "#work_preface_" + index, cid="#preface_comment_" + index;
+     $(pid).on('click', function() { $(cid).toggle(); });
+     $(pid).on('mouseover', function() { $(cid).show(); });
+     $(pid).on('mouseout', function() { $(cid).hide(); });
+   });
    // 显示隐藏作品正文每一行的注释
-   work.lines.forEach(function(item, index) {
-       var pid = "#lines-" + index, cid = "#lines-" + index + "-comment";
+   work.lines.split('\n').forEach(function(item, index) {
+       var pid = "#lines_" + index, cid = "#lines_" + index + "_comment";
        $(pid).on('click', function() { $(cid).toggle(); });
+       $(pid).on('mouseover', function() { $(cid).show(); });
+       $(pid).on('mouseout', function() { $(cid).hide(); });
    });
    // 显示隐藏作品注释（包含所有注释）
    $('#work_comment_prompt').on('click', function() { $('#work_comment').toggle(); });
@@ -225,12 +234,10 @@ template.helper('mark_shici', function(text, ptext, mark, pz) {
     return html; 
 });
 
-/*
- * 模板辅助函数：生成百度百科链接
- * type: 字符串，类别：shi-诗 ci-词
- * name: 字符串, 文章名称 
- * line: 字符串，文章第一句 
- */
+// 模板辅助函数：生成百度百科链接
+// type: 字符串，类别：shi-诗 ci-词
+// name: 字符串, 文章名称 
+// line: 字符串，文章第一句 
 template.helper('ci_baike', function(type, name, line) {
     var url = "http://baike.baidu.com/item/";
     url += name;
@@ -240,53 +247,79 @@ template.helper('ci_baike', function(type, name, line) {
     return url;
 });
 
-/*
- * 根据诗词类型判断是否显示平仄
- */
+// 根据作品类型判断是否显示平仄
 template.helper('pz', function(category) {
    return pzable(category);
 });
 
+// 模版辅助函数 - 判读注释是否为空
+template.helper('isblank', function(comment) {
+   var count = isblank(comment);
+   return count?false:true;
+});
+
+// 模版辅助函数 - 确定是否首行缩进
+template.helper('indent', function(text) {
+    var html = '';
+//    if ( type == '词' && obj.scrollHeight > 20 ) {
+    if ( text.length > 30 ) {
+      html = "style=\"text-indent: 2em;text-align: left;\"";
+    }
+    return html; 
+});
 </script>
 
-{# 搜索结果显示模板：以贴片/书签的方式显示诗词 #}
-<script id="template_work_tile" type="text/html">
-<div <% if ( tilestyle == 'tile_slim' ) { %> class="shici_tile_slim" <% } else { %> class="shici_tile" <% } %> >
-  <div <% if ( tilestyle == 'tile_slim' ) { %> class="shici_item_slim" <% } else { %> class="shici_item" <% } %> >
-  <div <% if ( tilestyle == 'tile_slim' ) { %> class="shici_item_mask_slim" flex="main:left cross:center" <% } else { %> class="shici_item_mask" <% } %> id="<%=# id %>" >
-    <% if ( tilestyle == 'tile_slim' ) { %> 
-      <div class="slim_part1" ><span class="slim_name"><%=# name %></span><span class="slim_line"> <%=# lines[0] %></span></div><div class="slim_part2"><span class="slim_author"><%=# author %></span></div>
-    <% } else { %>
-      <p><header> <%=# name %> <span class="author"><%=# author %></span> </header></p>
-      <% if (preface.length) { %>
-        <p class="preface" <% if (preface.length > 15) { %> style="text-indent: 2em;" <% } else { %> style="text-align: center;" <% } %> > <%=# preface %> </p>
-      <% } %>
-        <% if (type == '诗') { %>
-          <% for ( var num in lines ) { %>
-            <p class="shi_style"> <span> <%=# lines[num] %> </span> </p>
-          <% } %> 
-        <% } else if (type == '词') { %>
-          <% for ( var num in lines ) { %>
-             <p class="ci_style"> <%=# lines[num] %> </p>
-          <% } %>
-        <% } %>
+{# 作品搜索结果显示模版 _ 总入口 #}
+<script id="template_work_search_result" type="text/html">
+<div class="work_search_result_container">
+  <% for (var id in works ) { %>
+    <% if ( wsrs == 'card' ) { %>
+      <% include('template_work_search_result_card', works[id]) %>
+    <% } else if ( wsrs == 'bookmark' ) { %>
+      <% include('template_work_search_result_bookmark', works[id]) %>
     <% } %>
-    </div>
+  <% } %>
+</div>
+</script>
+
+{# 作品搜索结果显示模板：以贴片/书签的方式显示作品 #}
+<script id="template_work_search_result_bookmark" type="text/html">
+<div class="wsri"> {# wsri = work search result item #}
+  <div class="wsri_bookmark" id="<%=# id %>">
+      <div class="bookmark_head">
+         <span class="bookmark_name"><%=# name %></span>
+         <span class="bookmark_line"><%=# lines.split('\n')[0] %></span>
+      </div>
+      <div class="bookmark_tail">
+        <span class="bookmark_author"><%=# author %></span>
+      </div>
   </div>
 </div>
 </script>
 
-{# 诗词详细界面模版：模态框容器模版 #}
+<script id="template_work_search_result_card" type="text/html">
+<div class="wsri"> {# wsri = work search result item #}
+  <div class="wsri_card" id="<%=# id %>">
+      <p><span class="card_name"><%=# name %> </span><span class="card_author"> <%=# author %></span></p>
+      <p class="card_preface"><%= preface %></p>
+      <% lines.split('\n').forEach(function(item, index) { %>
+        <p class="card_line"><%=# item %></p>
+      <% }) %>
+    </div>
+</div>
+</script>
+
+{# 作品详细界面模版：模态框容器模版 #}
 <script id="template_work_detail" type="text/html">
   <div class="modal-header">   <% include('template_work_detail_header') %> </div> 
   <div class="show_work_body"> <% include('template_work_detail_body')   %> </div>
   <div class="modal-footer">   <% include('template_work_detail_footer') %> </div> 
 </script>
 
-{# 诗词详细界面模版：模态框头部功能区 显示朗读、拼音和关闭按键 #} 
+{# 作品详细界面模版：模态框头部功能区 显示朗读、拼音和关闭按键 #} 
 <script id="template_work_detail_header" type="text/html">
   <span  style="float:right;" data-dismiss="modal" aria-hidden="true" title="关闭此页面">关闭</span>
-  <% var tts_text = name + ' ' + author + ' ' + preface + ' ' + lines.join(' ') %>
+  <% var tts_text = name + ' ' + author + ' ' + preface + ' ' + lines %>
   <span   class="work_show_menu_item" title="朗读是通过语音合成方式完成，需要访问互联网。语音、语调、多音字、朗读连贯性等方面尚待完善，仅供参考。" id="readwork" > 朗读 </span>
   <span class="separator"> | </span>
   <span  class="work_show_menu_item" title="显示拼音 通过程序自动标注，多音字尚不能完全准确标注，因此标注的拼音仅供参考。" id="py" > 拼音 </span>
@@ -295,17 +328,17 @@ template.helper('pz', function(category) {
   <span  class="work_show_menu_item" title="根据拼音声调自动标注平仄，仅供参考。" id="pz" > 平仄 </span>
  <% } %>
  <span class="separator"> | </span>
- <span  class="work_show_menu_item" title="编辑诗词。"  id="edit" > 编辑 </span>
+ <span  class="work_show_menu_item" title="编辑作品。"  id="edit" > 编辑 </span>
  <span class="separator"> | </span>
- <span  class="work_show_menu_item" title="删除诗词。"  id="delete" > 删除 </span>
+ <span  class="work_show_menu_item" title="删除作品。"  id="delete" > 删除 </span>
 </script>
 
-{# 诗词详细界面模版：模态框尾部功能区 显示关闭按键 #}
+{# 作品详细界面模版：模态框尾部功能区 显示关闭按键 #}
 <script id="template_work_detail_footer" type="text/html">
     <span type="button" data-dismiss="modal">关闭</span>
 </script>
 
-{# 诗词详细界面模版：模态框内容主界面 #}
+{# 作品详细界面模版：模态框内容主界面 #}
 <script id="template_work_detail_body" type="text/html">
   <div class="show_work_item"> <% include('template_work_body') %> </div>
 {#  <div class="show_work_item"> <% include('template_work_comment') %> </div> #}
@@ -313,57 +346,59 @@ template.helper('pz', function(category) {
   <div class="show_work_item"> <% include('template_work_tag') %> </div>
 </script>
 
-{# 诗词详细界面模版：内容主界面 - 诗词原文 #} 
+{# 作品详细界面模版：内容主界面 _ 作品原文 #} 
 <script id="template_work_body" type="text/html">
 <div id="work_body_container">
-  <div id="work_body_prompt" style="cursor:pointer;">原文</div>
-  <div id="work_body"> <% include('template_work_detail_body_zw') %> </div>
+  <div id="work_body_prompt" class="work_item_prompt">原文</div>
+  <div id="work_body" class="show_work_body_zw"><% include('template_work_detail_body_zw') %> </div>
 </div>
 </script>
 
+{# 作品详细界面模版：内容主界面 _ 作品原文 各子项 #} 
 <script id="template_work_detail_body_zw" type="text/html">
-<p><header><span id="work_name"><%=#mark_shici(name, pname, mark, false)%></span> <span id="work_author" class="author baike" title="到百度百科查看<%=#author %>的介绍" ><%=#mark_shici(author, pauthor, mark, false) %></span></header></p>
-
-<div id='name_comment' hidden>
-  <p class="comment">
-  <% for (var index in comment['name']) { %>
-   <% var data = 'name' in comment?{comment:comment['name'][index],cnum:cnum}:{comment:[],cnum:cnum}; %>
-   <% include('template_comment_item', data) %>
-  <% } %>
-  </p>
+<% name.split('\n').forEach(function(item, index) { %>
+<div>
+  <span id="work_name_<%=# index %>" class="show_work_name"><%=#mark_shici(item, pname[index], mark, false)%> </span>
+  <span id="work_author_<%=# index %>" class="show_work_author"> <%=#mark_shici(author, pauthor[index], mark, false) %></span>
 </div>
-
-<% if (preface.length) { %>
-  <p id="work_preface" class="preface" data="zw" <% if (preface.length > 30) { %> style="text-indent: 2em;" <% } else { %> style="text-align: center;" <% } %> ><%=#mark_shici(preface, ppreface, mark, false) %></p>
-  <div id='preface_comment' hidden>
-    <p class="comment">
-   <% for (var index in comment['preface']) { %>
-   <% var data = 'preface' in comment?{comment:comment['preface'][index],cnum:cnum}:{comment:[],cnum:cnum}; %>
-   <% include('template_comment_item', data) %>
-   <% } %>
-    </p>
-  </div>
+<% if ( !isblank(comment['name'][index]) ) { %>
+<div id='name_comment_<%=# index %>' class="show_work_comment" hidden>
+     <% var data = 'name' in comment?{comment:comment['name'][index],cnum:cnum}:{comment:[],cnum:cnum}; %>
+     <% include('template_comment_item', data) %>
+</div>
 <% } %>
+<% }) %>
 
-<% for (var num in lines) { %>
-  <p id="lines-<%=# num %>" data="zw" class=<% if (lines[num].length < 30 ) { %> "shi_style" <% } else { %> "ci_style" <% } %>  > 
-    <span><%=#mark_shici(lines[num], plines[num], mark, true) %> </span>
-  </p> 
-  <div id="lines-<%=# num %>-comment" hidden>
-    <p class="comment"> 
-   <% var data = 'lines' in comment?{comment:comment['lines'][num],cnum:cnum}:{comment:[],cnum:cnum}; %>
-   <% include('template_comment_item', data) %>
-    </p>
+<% preface.split('\n').forEach(function(item, index) { %>
+  <div id="work_preface_<%=# index %>" class="show_work_preface" data="zw"<%=# indent(item) %> ><%=#mark_shici(item, ppreface[index], mark, false) %></div>
+
+    <% if (!isblank(comment['preface'][index])) { %>
+    <div id='preface_comment_<%=# index %>' class="show_work_comment" hidden>
+      <% var data = 'preface' in comment?{comment:comment['preface'][index],cnum:cnum}:{comment:[],cnum:cnum}; %>
+      <% include('template_comment_item', data) %>
     </div>
-<% } %> 
+  <% } %>
+<% }) %>
+
+<% lines.split('\n').forEach(function(item, index) { %>
+  <div id="lines_<%=# index %>" data="zw" class="show_work_line" <%=# indent(item) %>> 
+    <span><%=#mark_shici(item, plines[index], mark, true) %> </span>
+  </div> 
+    <% if (!isblank(comment['lines'][index])) { %>
+      <div id="lines_<%=# index %>_comment" class="show_work_comment" hidden> 
+      <% var data = 'lines' in comment?{comment:comment['lines'][index],cnum:cnum}:{comment:[],cnum:cnum}; %>
+        <% include('template_comment_item', data) %>
+      </div>
+  <% } %>
+<% }) %> 
 </script>
 
-{# 诗词详细界面模版：内容主界面 - 注释 #} 
+{# 作品详细界面模版：内容主界面 _ 注释 #} 
 <script id="template_work_comment" type="text/html">
 <div id="work_comment_container">
- <div id="work_comment_prompt" style="cursor:pointer;">注释</div>
+ <div id="work_comment_prompt" class="work_item_prompt">注释</div>
  <div id="work_comment" >
-  <p class="comment">
+  <p class="show_work_comment">
   <% for (var index in comment['name']) { %>
    <% var data = 'name' in comment?{comment:comment['name'][index],cnum:cnum}:{comment:[],cnum:cnum}; %>
    <% include('template_comment_item', data) %>
@@ -381,30 +416,193 @@ template.helper('pz', function(category) {
 </div>
 </script>
 
-{# 诗词详细界面模版：显示注释条目 #} 
+{# 作品详细界面模版：显示注释条目 #} 
 <script id="template_comment_item" type="text/html">
 <% for ( var index in comment) { %>
   <% for ( var key in comment[index] ) { %>
-    <span class="comment_key"><%=# cnum[index] %><%=# key %>: </span><span><%=# comment[index][key] %></span>
+    <span class="show_comment_key"><%=# cnum[index] %><%=# key %>: </span><span class="show_comment_value"><%=# comment[index][key] %></span>
   <% } %>
 <% } %>
 </script>
 
-{# 诗词详细界面模版：内容主界面 - 赏析 #} 
+{# 作品详细界面模版：内容主界面 _ 赏析 #} 
 <script id="template_work_analyse" type="text/html">
+<% if ( !isblank(analyse) ) { %>
 <div id="work_analyse_container">
-  <div id="work_analyse_prompt" style="cursor:pointer;">赏析</div>
-  <div id="work_analyse">
-     <% for (var index in analyse) { %><div style="text-align:left;text-indent:2em"><%=# analyse[index] %></div><% } %>
-{#    <p style="cursor:pointer;text-indent:2em" onclick="window.open('<% if (url.length) { %><%=# url %><% } else { %><%=# ci_baike(type, name, lines[0]) %><% } %>');">到百度百科查看详细赏析</p> #}
+  <div id="work_analyse_prompt" class="work_item_prompt">赏析</div>
+  <div id="work_analyse" class="show_work_analyse">
+     <% analyse.split('\n').forEach(function(item, index) { %>
+       <p><%=# item %></p>
+     <% }) %>
   </div>
+</div>
+<% } %>
+</script>
+
+{# 作品详细界面模版：内容主界面 _ 标签 #} 
+<script id="template_work_tag" type="text/html">
+<div id="work_tag_container">
+  <div id="work_tag_prompt" class="work_item_prompt">标签</div>
+  <div id="work_tag" class="show_work_tag"><%=# tag.join(' ') %></div>
 </div>
 </script>
 
-{# 诗词详细界面模版：内容主界面 - 标签 #} 
-<script id="template_work_tag" type="text/html">
-<div id="work_tag_container">
-  <div id="work_tag_prompt" style="cursor:pointer;">标签</div>
-  <div id="work_tag" style="text-indent:2em"><%=# tag.join(' ') %></div>
-</div>
-</script>
+{# 作品搜索结果显示风格配置区 #}
+<style>
+.work_search_result_container {
+  width: 100%;
+  margin-top: 20px;
+  padding-left: 10%;
+  padding-right: 10%;
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+.wsri {
+ margin: 10px;
+ width: 320px; 
+ padding: 10px;
+ background-color: #c2c8f6;
+ box-shadow: 5px 5px 5px #888888;
+ border-radius: 5px;
+}
+.wsri:hover {
+{#     box_shadow: 0px 0px 5px 5px #f9ce17; #}
+    box-shadow: 0px 0px 10px 10px White;
+}
+
+.wsri_bookmark {
+  height: 30px;
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.bookmark_head {
+  width: 80%;
+  white-space: nowrap;
+  overflow-x: hidden;
+  overflow-y: hidden;
+  text-overflow: ellipsis;
+  color: Gray;
+}
+.bookmark_tail {
+  width: 20%;
+  text-align: right;
+  text-overflow: ellipsis;
+}
+.bookmark_name {
+  color: GhostWhite;
+}
+.bookmark_line {
+  font-size: 14px;
+}
+.bookmark_author {
+  color: GhostWhite;
+}
+
+.wsri_card {
+  height: 280px;
+  width: 100%;
+  overflow-x: hidden;
+  overflow-y: hidden;
+  text-overflow: ellipsis;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+}
+.card_name {
+  color: White;
+  font-size: 20px;
+}
+.card_author {
+  color: WhiteSmoke;
+}
+.card_preface {
+  font-size: 14px;
+  color: GhostWhite;
+}
+.card_line {
+}
+
+.card_preface:hover, .card_line:hover {
+  background-color: WhiteSmoke;
+  color: Gray;
+}
+</style>
+
+{# 作品详细信息显示风格控制区 #}
+<style>
+.show_work_header {
+}
+.show_work_menu_item {
+  cursor: pointer;
+}
+.show_work_menu_separator {
+  color: LightGrey;
+}
+.show_work_body {
+  background-color: #c2c8f6;
+  padding: 10px;
+}
+.show_work_item {
+  width: 100%;
+  padding: 10px;
+}
+.work_item_prompt {
+  cursor: pointer;
+}
+.show_work_body_zw {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+}
+.show_work_tag, .show_work_comment, .show_work_analyse {
+  font-size: 14px;
+  color: #FFF8DC;
+  text-indent: 2em;
+  text-align: left;
+}
+.show_work_name {
+  font-size: 20px;
+  color: White;
+}
+.show_work_author {
+  font-size: 18px;
+  color: WhiteSmoke;
+}
+.show_work_preface, .show_work_line, .show_work_comment {
+  width: 100%;
+  text-align: center;
+  padding: 5px 2px;
+}
+.show_work_preface, .show_work_comment {
+  font-size: 14px;
+}
+.show_work_preface {
+  color: WhiteSmoke;
+}
+.show_work_line:hover {
+  background-color: WhiteSmoke;
+  color: black;
+}
+.show_work_comment {
+  background-color: WhiteSmoke;
+  color: Grey;
+}
+.show_comment_key {
+  color: black;
+}
+.show_comment_value {
+}
+
+.show_work_footer {
+}
+</style>
+

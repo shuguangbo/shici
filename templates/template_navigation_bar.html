@@ -1,67 +1,24 @@
-<nav class="navigation-bar-container" >
-    <div class="navigation-bar-item" id="logosbox">
-         <span id="logo">【我爱<svg class="icon" aria-hidden="true"><use xlink:href="#icon-icon_shi"></use></svg><svg class="icon" aria-hidden="true"><use xlink:href="#icon-icon_ci"></use></svg>】</span>
-         <input id="search-box" class="search-box" type="text" name="keywords" required="required" autofocus="autofocus" placeholder="搜索 ... 诗名、作者、诗句、体裁" onkeypress="search_key_press(event, this)" onfocus="this.select();" >
-{#
-           <datalist id="keyword_list">
-               <option label="李白" value="李白" />
-               <option label="杜甫" value="杜甫" />
-               <option label="白居易" value="白居易" />
-               <option label="王维" value="王维" />
-               <option label="唐诗三百首" value="唐诗三百首" />
-               <option label="宋词三百首" value="宋词三百首" />
-               <option label="千家诗" value="千家诗" />
-               <option label="五言绝句" value="五言绝句" />
-               <option label="五言律诗" value="五言律诗" />
-               <option label="七言绝句" value="七言绝句" />
-               <option label="七言律诗" value="七言律诗" />
-           </datalist>
-#}
-    </div>
-    <div class="navigation-bar-item" id="menu">
-      <div class="menu-bar-container" >
-        {# <div class="menu-bar-item"> #}
-           {# <a href="javascript:void(0);" onclick="$('#config_panel').toggle();">设置</a> #}
-            <a href="javascript:void(0);" id="config">设置</a>
-        {# </div> #}
-        {# <div class="menu-bar-item"> #}
-            <span class="separator"> | </span>
-        {# </div> #}
-        {# <div class="menu-bar-item"> #}
-            <a href="/" >首页</a>
-        {# </div> #}
-        {# <div class="menu-bar-item"> #}
-            <span class="separator"> | </span>
-        {# </div> #}
-        {# <div class="menu-bar-item"> #}
-            <a href="/test" >测试</a>
-        {# </div> #}
-        {# <div class="menu-bar-item"> #}
-            <span class="separator"> | </span>
-        {# </div> #}
-        {# <div class="menu-bar-item"> #}
-             {# <a href="javascript:void(0);" title="经典推荐" onclick="classic_work();" >经典</a> #}
-             <a href="javascript:void(0);" title="经典推荐" id="classic_work" >经典</a>
-        {# </div> #}
-        {# <div class="menu-bar-item"> #}
-            <span class="separator"> | </span>
-        {# </div> #}
-        {# <div class="menu-bar-item"> #}
-            {# <a href="javascript:void(0);" title="录入诗词" onclick="new_work();" >录入</a> #}
-            <a href="javascript:void(0);" title="录入诗词" id="new_work" >录入</a>
-        {# </div> #}
-        {# <div class="menu-bar-item"> #}
-            <span class="separator"> | </span>
-        {# </div> #}
-        {# <div class="menu-bar-item"> #}
-            <a href="javascript:void(0);" title="诗词闯关，正在制作中，敬请期待！" >闯关</a>
-        {# </div> #}
-        {# <div class="menu-bar-item"> #}
-            <span class="separator"> | </span>
-        {# </div> #}
-        {# <div class="menu-bar-item"> #}
-            <a href="javascript:void(0);" title="用户登录，正在开发中。" >登录</a>
-        {# </div> #}
+{# 导航模版 #}
+<nav class="navigation_bar_container" >
+  <div class="navigation_bar_item" id="logosbox">
+    <span id="logo">【我爱<svg class="icon" aria_hidden="true"><use xlink:href="#icon-icon_shi"></use></svg><svg class="icon" aria_hidden="true"><use xlink:href="#icon-icon_ci"></use></svg>】</span>
+     <input id="search_box" class="search_box" type="text" name="keywords" required="required" autofocus="autofocus" placeholder="搜索 ... 诗名、作者、诗句、体裁" >
+  </div>
+  <div class="navigation_bar_item" id="menu">
+    <div class="menu_bar_container" >
+      <a href="javascript:void(0);" id="config">设置</a>
+      <span class="separator"> | </span>
+      <a href="/" >首页</a>
+      <span class="separator"> | </span>
+      <a href="/test" >测试</a>
+      <span class="separator"> | </span>
+       <a href="javascript:void(0);" title="经典推荐" id="classic_work" >经典</a>
+      <span class="separator"> | </span>
+      <a href="javascript:void(0);" title="录入诗词" id="new_work" >录入</a>
+      <span class="separator"> | </span>
+      <a href="javascript:void(0);" title="诗词闯关，正在制作中，敬请期待！" >闯关</a>
+      <span class="separator"> | </span>
+      <a href="javascript:void(0);" title="用户登录，正在开发中。" >登录</a>
       </div> 
   </div>
 </nav>
@@ -69,12 +26,73 @@
 <script>
 $(document).ready(function(){
     // 添加民航菜单各项的事件处理器
-    $('#search-box').focus(function(){ this.select(); });
-    $('#search-box').mouseover(function(){ $(this).focus(); });
-    $('#search-box').change(function(event){ search_key_press(event, this); }); 
+    $('#search_box').focus(function(){ $(this).select(); });
+    $('#search_box').mouseover(function(){ $(this).focus(); });
+//    $('#search_box').change(function(event){ search_key_press(event, this); }); 
+    $('#search_box').keypress(function(event){ search_key_press(event, this); }); 
     $('#config').click(function(){ $('#config_panel').toggle() });
     $('#classic_work').click(function(){ classic_work(); });
     $('#new_work').click(function(){ new_work(); });
 
 });
 </script>
+
+{# 导航区域显示风格控制 #}
+<style>
+.icon {
+   width: 1em; height: 1em;
+   vertical-align: -0.15em;
+   fill: currentColor;
+   overflow: hidden;
+}
+.navigation_bar_container {
+    position: fixed;
+    width: 100%;
+    height: 50px;
+    left: 0px;
+    top: 0px;
+    border: none;
+    display: flex;
+    padding-left: 10%;
+    padding-right: 10%;
+    background-color: GhostWhite;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    align-items: center;
+    z-index: 1;
+}
+.navigation_bar_container:hover {
+    box-shadow: 0px 2px 2px #F0F0F0;
+}
+
+.navigation_bar_item a {
+    text-decoration: none;
+}
+
+.search_box {
+    border: none;
+    border-radius: 5px;
+    width: 220px;
+    height: 30px;
+    padding: 5px;
+    margin: 5px;
+    font-size: 14px;
+    box-shadow: 0px 0px 1px 1px LightGrey;
+}
+.search_box:focus {
+    box-shadow: 0px 0px 1px 1px Gray;
+    border: none;
+}
+
+.menu_bar_container {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+}
+.menu_bar_item {
+    padding: 0px 1px;
+}
+
+</style>
