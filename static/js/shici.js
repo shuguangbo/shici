@@ -363,6 +363,11 @@ function is_nonchinese_char(text) {
    return g_nonchinese_char.test(text);
 }
 
+// 判断字符串是否包含非中文字符，包括中文标点符号
+function has_nonchinese_char(text) {
+   return g_nonchinese_char.test(text);
+}
+
 // 清除所有非中文字符包括中文标点符号
 function remove_nonchinese(text) {
    return text.replace(g_nonchinese_all, '');

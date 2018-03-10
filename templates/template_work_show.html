@@ -20,15 +20,13 @@ function search_work(obj) {
     var url = "/v1/search";
     var keywords = obj.value.trim(); 
     var tip_blank = '关键字不能为空白';
-    var tip_chinese ='关键字必须为中文'; 
+    var tip_chinese ='关键字必须为中文不含标点'; 
     if ( keywords.length == 0 ) {
         obj.value= trans_text(tip_blank);
         obj.select();
         return;
     } else {
-        code = keywords.charCodeAt(0);
-        isChinese = (code > 0x3400 && code < 0x9FC3) || (code > 0xF900 && code < 0xFA6A); 
-        if (!isChinese) {
+        if (has_nonchinese_char(keywords)) {
             obj.value=trans_text(tip_chinese);
             obj.select();
             return;
@@ -60,13 +58,13 @@ function search_work(obj) {
 
 
 function display_search_result(work_set) {
-  console.log("search result item number: " + work_set.length);
-  console.log("display style: " + tilestyle);
+  //console.log("search result item number: " + work_set.length);
+  //console.log("display style: " + tilestyle);
   if ( work_set.length == 0 ) {
       return 0;
   }
   var html = template('template_work_search_result', {wsrs: tilestyle, works:work_set});
-  console.log(html);
+  //console.log(html);
   $('#content').html(trans_text(html));
   // 添加搜索结果事件处理器 
   search_result_event_handler();
@@ -151,12 +149,9 @@ function search_result_event_handler() {
 
 // 作品显示区事件处理器
 function show_event_handler(){
-    // 作品显示区头部事件处理器
-    show_header_event_handler();
-    // 作品显示区中部事件处理器
-    show_body_event_handler();
-    // 作品显示区尾部事件处理器
-    //show_footer_event_handler();
+    show_header_event_handler(); // 作品显示区头部事件处理器
+    show_body_event_handler(); // 作品显示区中部事件处理器
+    //show_footer_event_handler(); // 作品显示区尾部事件处理器
 }
 
 function show_header_event_handler() {
@@ -469,7 +464,6 @@ template.helper('indent', function(text) {
  border-radius: 5px;
 }
 .wsri:hover {
-{#     box_shadow: 0px 0px 5px 5px #f9ce17; #}
     box-shadow: 0px 0px 10px 10px White;
 }
 
@@ -492,6 +486,9 @@ template.helper('indent', function(text) {
 }
 .bookmark_tail {
   width: 20%;
+  white-space: nowrap;
+  overflow-x: hidden;
+  overflow-y: hidden;
   text-align: right;
   text-overflow: ellipsis;
 }
