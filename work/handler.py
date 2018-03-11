@@ -94,6 +94,7 @@ class restSearchWorkHandler(BaseHandler):
     @tornado.web.asynchronous
     def post(self, *args, **kwargs):
         keywords = json.loads(self.get_argument("keywords", ""), encoding='utf-8')
+#        print "keywords - " + keywords
 
         if not keywords.strip():
             keywords = ''

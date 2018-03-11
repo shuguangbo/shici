@@ -1,24 +1,24 @@
 <script>
 
-// Global variable for work detail - toggle pinyin display
-var work={}; 
-var work_set={};
+//  全局变量 
+var work={};  // 作品详细信息 
+var work_set={}; // 作品集合，如搜索结果
 var last_id;
-// 1 - 20 within a circle like ① 
-var cnum=['\u2460','\u2461', '\u2462', '\u2463', '\u2464','\u2465','\u2466','\u2467','\u2468','\u2469','\u246a','\u246b','\u246d','\u246e','\u246f','\u2470','\u2471','\u2472','\u2473']
+// 1 - 50 带圈数字① 
+var cnum=['\u2460','\u2461', '\u2462', '\u2463', '\u2464','\u2465','\u2466','\u2467','\u2468','\u2469','\u246a','\u246b','\u246d','\u246e','\u246f','\u2470','\u2471','\u2472','\u2473', '\u3251', '\u3252', '\u3253','\u3254','\u3255','\u3256','\u3257','\u3258','\u3259', '\u325a','\u325b','\u325c','\u325d','\u325e','\u325f','\u32b0','\u32b1','\u32b2','\u32b3','\u32b4','\u32b5','\u32b6','\u32b7','\u32b8','\u32b9','\u32ba','\u32bb','\u32bc','\u32bd','\u32be','\u32bf']
 
-// 事件处理器 
+// 搜索框内有键按下时的事件处理器 
 function search_key_press(e, obj) {  
     if (!e) e = window.event;  
-    if ((e.keyCode || e.which) == 13) {  
+    if ((e.keyCode || e.which) == key_Enter) {  
        search_work(obj);
     }  
 }  
 
-// 搜索结果模板渲染入口
+// 搜索
 function search_work(obj) {
     var url = "/v1/search";
-    var keywords = obj.value.trim(); 
+    var keywords = $.t2s(obj.value.trim()); 
     var tip_blank = '关键字不能为空白';
     var tip_chinese ='关键字必须为中文不含标点'; 
     if ( keywords.length == 0 ) {
@@ -32,14 +32,14 @@ function search_work(obj) {
             return;
         }
     }
-   if ( $.t2s(keywords) == tip_blank || $.t2s(keywords) == tip_chinese) {
+   if ( keywords == tip_blank || keywords == tip_chinese) {
         obj.select();
         return;
    }
 
     spinner_start();
-    $.post(url, {_xsrf:$.cookie('_xsrf'),keywords:JSON.stringify($.t2s(keywords))}, function(data, status) {
-          work_set = data;
+    $.post(url, {_xsrf:$.cookie('_xsrf'), keywords:JSON.stringify(keywords)}).done(function(data, status) {
+          work_set = JSON.parse(data);
           if ( work_set.length == 0 ) {
                obj.value = trans_text(obj.value + ' 没有匹配记录。');
                obj.select();
@@ -49,7 +49,7 @@ function search_work(obj) {
                obj.select();
           }
           display_search_result(work_set);
-    }, 'json').fail(function(jqXHR, textStatus, errorThrown) {
+    }).fail(function(jqXHR, textStatus, errorThrown) {
         console.log("搜索失败: " + textStatus + ": " + errorThrown );
     }).always(function() {
         spinner_stop();
@@ -80,10 +80,10 @@ function get_work(id) {
     }
 
     spinner_start();
-    $.post(url, {_xsrf:$.cookie('_xsrf'), id:JSON.stringify(id)}, function(data, status) {
-        work = data;
+    $.post(url, {_xsrf:$.cookie('_xsrf'), id:JSON.stringify(id)}).done(function(data, status) {
+        work = JSON.parse(data);
         show_work_detail(work);
-    }, 'json').fail(function(jqXHR, textStatus, errorThrown) {
+    }).fail(function(jqXHR, textStatus, errorThrown) {
         console.log("获取作品详细信息失败: " + textStatus + ": " + errorThrown );
     }).always(function() {
         spinner_stop();
@@ -94,10 +94,10 @@ function get_work(id) {
 function classic_work() {
     var url = "/v1/classicwork";
     spinner_start();
-    $.post(url, {_xsrf:$.cookie('_xsrf'), id:JSON.stringify("")}, function(data, status) {
-        work = data;
+    $.post(url, {_xsrf:$.cookie('_xsrf'), id:JSON.stringify("")}).done(function(data, status) {
+        work = JSON.parse(data);
         show_work_detail(work);
-    }, 'json').fail(function(jqXHR, textStatus, errorThrown) {
+    }).fail(function(jqXHR, textStatus, errorThrown) {
         console.log("获取经典作品失败: " + textStatus + ": " + errorThrown );
     }).always(function() {
         spinner_stop();
