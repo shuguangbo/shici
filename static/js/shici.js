@@ -8,6 +8,7 @@ var g_chinese_char=/[\u3400-\u9FFF\uF900-\uFAFF]/;
 var g_nonchinese_char=/[^\u3400-\u9FFF\uF900-\uFAFF]/;
 var g_nonchinese_all=/[^\u3400-\u9FFF\uF900-\uFAFF]+/g;
 
+var g_linelen = 30;       // 显示输入允许最大字符数
 var fanjian = "j";               /* 缺省显示简体字 */
 var dialect = "aisjying";        /* 缺省发音为迅飞普通话 */
 var tts_vendor = "tts_xunfei";   /* 缺省语音合成使用讯飞 */
@@ -255,17 +256,16 @@ function trans_text(text)
 }
 
 $(function() {
-    $("#workDetail").on("show.bs.modal", function() {
+    $("#modal").on("md_show", function() {
 //        console.log("show modal");
         audio_state = 0; // Need initializing audio
         loadedData = false;
     });
 
-    $("#workDetail").on("hide.bs.modal", function() {
+    $("#modal").on("md_close", function() {
 //        console.log("hide modal");
         stop(); //Stop play audio - call stop() in tts_demo.js
         audio_state = 0; // Need initializing audio
-        $(this).removeData("bs.modal"); // remove content of Modal Dialog
         spinner_stop();
     });
 
@@ -395,3 +395,22 @@ function mark_pz(pindex, data) {
     html += "</rt>";
     return html;
 }
+
+// 判断是否需要缩进
+function indent(text) {
+   var html = text.length > g_linelen ? "style=\"text-indent: 2em;text-align: left;\"" : "";
+   // console.log("Text: " + text + " Indent: " + html);
+   return html;
+}
+
+// 计算多行输入区需要显示的行数
+function count_rows(text) {
+    var row = text.split('\n').length;
+    var count = 0;
+    text.split('\n').forEach(function(item) {
+        count += item.trim().length > g_linelen ? item.trim().length/g_linelen : 0;
+    });
+    row += count;
+    return row;
+}
+

@@ -2,34 +2,28 @@
 <nav class="navigation_bar_container" >
   <div class="navigation_bar_item" id="logosbox">
     <span id="logo">【我爱<svg class="icon" aria_hidden="true"><use xlink:href="#icon-icon_shi"></use></svg><svg class="icon" aria_hidden="true"><use xlink:href="#icon-icon_ci"></use></svg>】</span>
-     <input id="search_box" class="search_box" type="text" name="keywords" required="required" autofocus="autofocus" placeholder="搜索 ... 诗名、作者、诗句、体裁" >
+     <input id="search_box" class="search_box" type="text" name="keywords" required="required" maxlength=20 placeholder="搜索 ... 诗名、作者、诗句、体裁" >
   </div>
   <div class="navigation_bar_item" id="menu">
-    <div class="menu_bar_container" >
-      <a href="javascript:void(0);" id="config">设置</a>
-      <span class="separator"> | </span>
-      <a href="/" >首页</a>
+      <ul class="menu_bar">
+        <li><span id="config">设置</span></li>
+        <li><span id="home">首页</a></li>
 {#
-      <span class="separator"> | </span>
-      <a href="/test" >测试</a>
+        <li><span id="test">测试</a></li>
 #}
-      <span class="separator"> | </span>
-       <a href="javascript:void(0);" title="经典推荐" id="classic_work" >经典</a>
-      <span class="separator"> | </span>
-      <a href="javascript:void(0);" title="录入诗词" id="new_work" >录入</a>
+        <li><span title="经典推荐" id="classic_work" >经典</span></li>
+        <li><span title="录入诗词" id="new_work" >录入</span></li>
 {#
-      <span class="separator"> | </span>
-      <a href="javascript:void(0);" title="诗词闯关，正在制作中，敬请期待！" >闯关</a>
-      <span class="separator"> | </span>
-      <a href="javascript:void(0);" title="用户登录，正在开发中。" >登录</a>
+        <li><span title="诗词闯关，正在制作中，敬请期待！" >闯关</span></li>
+        <li><span title="用户登录，正在开发中。" >登录</span></li>
 #}
-      </div> 
+        </ul>
   </div>
 </nav>
 
 <script>
 $(document).ready(function(){
-    // 添加民航菜单各项的事件处理器
+    // 添加导航菜单各项的事件处理器
     $('#search_box').focus(function(){ $(this).select(); });
     $('#search_box').mouseover(function(){ $(this).focus(); });
 //    $('#search_box').change(function(event){ search_key_press(event, this); }); 
@@ -37,6 +31,8 @@ $(document).ready(function(){
     $('#config').click(function(){ $('#config_panel').toggle() });
     $('#classic_work').click(function(){ classic_work(); });
     $('#new_work').click(function(){ new_work(); });
+    $('#home').click(function() { location.href="/"; });
+    $('#test').click(function() { location.href="/test"; });
 
 });
 </script>
@@ -61,16 +57,14 @@ $(document).ready(function(){
     padding-right: 10%;
     background-color: GhostWhite;
     justify-content: space-between;
-    flex-wrap: wrap;
+    flex-direction: row;
     align-items: center;
     z-index: 1;
 }
 .navigation_bar_container:hover {
     box-shadow: 0px 2px 2px #F0F0F0;
 }
-
-.navigation_bar_item a {
-    text-decoration: none;
+.navigation_bar_item {
 }
 
 .search_box {
@@ -88,15 +82,26 @@ $(document).ready(function(){
     border: none;
 }
 
-.menu_bar_container {
+.menu_bar {
     width: 100%;
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
     align-items: center;
+    list-style: none;
 }
-.menu_bar_item {
-    padding: 0px 1px;
+.menu_bar li {
+  display: inline;
+  cursor: pointer; 
+  text-decoration: none;
+}
+.menu_bar li+li:before {
+  padding: 5px;
+  color: LightGray;
+  content: "|";
+}
+.menu_bar li:hover {
+  font-weight: bold; 
 }
 
 </style>

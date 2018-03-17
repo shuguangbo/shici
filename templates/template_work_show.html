@@ -109,10 +109,14 @@ function show_work_detail(work) {
     work.cnum = cnum;
     last_id = work.id;
     var html = template('template_work_detail', work);
+    $('#modal_content').html(trans_text(html));
+    $('#modal').trigger('md_show');
+/*
     $('#workdetailcontent').html(trans_text(html));
     $('#workDetail').modal({
         keyboard: true
     });
+*/
     // 添加作品显示区事件处理器
     show_event_handler();
 }
@@ -151,7 +155,7 @@ function search_result_event_handler() {
 function show_event_handler(){
     show_header_event_handler(); // 作品显示区头部事件处理器
     show_body_event_handler(); // 作品显示区中部事件处理器
-    //show_footer_event_handler(); // 作品显示区尾部事件处理器
+    show_footer_event_handler(); // 作品显示区尾部事件处理器
 }
 
 function show_header_event_handler() {
@@ -169,6 +173,12 @@ function show_header_event_handler() {
     $('#edit').on('click', function() { edit_work(work); });
     // 删除作品
     $('#delete').on('click', function() { del_work(work.id); });
+    // 关闭作品详细信息显示框
+    $('#show_header_close').on('click', function() { $('#modal').trigger('md_close');});
+}
+function show_footer_event_handler() {
+    // 关闭作品详细信息显示框
+    $('#show_footer_close').on('click', function() { $('#modal').trigger('md_close');});
 }
 
 function show_body_event_handler() {
@@ -257,10 +267,11 @@ template.helper('isblank', function(comment) {
 template.helper('indent', function(text) {
     var html = '';
 //    if ( type == '词' && obj.scrollHeight > 20 ) {
-    if ( text.length > 30 ) {
-      html = "style=\"text-indent: 2em;text-align: left;\"";
-    }
-    return html; 
+//    if ( text.length > 30 ) {
+//      html = "style=\"text-indent: 2em;text-align: left;\"";
+//    }
+//    return html; 
+    return indent(text);
 });
 </script>
 
@@ -306,31 +317,35 @@ template.helper('indent', function(text) {
 
 {# 作品详细界面模版：模态框容器模版 #}
 <script id="template_work_detail" type="text/html">
-  <div class="modal-header">   <% include('template_work_detail_header') %> </div> 
-  <div class="show_work_body"> <% include('template_work_detail_body')   %> </div>
-  <div class="modal-footer">   <% include('template_work_detail_footer') %> </div> 
+  <div class="modal_header show_work_header">   <% include('template_work_detail_header') %> </div> 
+  <div class="modal_body show_work_body"> <% include('template_work_detail_body')   %> </div>
+  <div class="modal_footer show_work_footer">   <% include('template_work_detail_footer') %> </div> 
 </script>
 
 {# 作品详细界面模版：模态框头部功能区 显示朗读、拼音和关闭按键 #} 
 <script id="template_work_detail_header" type="text/html">
-  <span  style="float:right;" data-dismiss="modal" aria-hidden="true" title="关闭此页面">关闭</span>
   <% var tts_text = name + ' ' + author + ' ' + preface + ' ' + lines %>
-  <span   class="work_show_menu_item" title="朗读是通过语音合成方式完成，需要访问互联网。语音、语调、多音字、朗读连贯性等方面尚待完善，仅供参考。" id="readwork" > 朗读 </span>
-  <span class="separator"> | </span>
-  <span  class="work_show_menu_item" title="显示拼音 通过程序自动标注，多音字尚不能完全准确标注，因此标注的拼音仅供参考。" id="py" > 拼音 </span>
+<div class="show_work_menu">
+  <span   class="show_work_menu_item" title="朗读是通过语音合成方式完成，需要访问互联网。语音、语调、多音字、朗读连贯性等方面尚待完善，仅供参考。" id="readwork" > 朗读 </span>
+  <span class="show_work_menu_separator"> | </span>
+  <span  class="show_work_menu_item" title="显示拼音 通过程序自动标注，多音字尚不能完全准确标注，因此标注的拼音仅供参考。" id="py" > 拼音 </span>
  <% if ( pz(category) ) { %>
-  <span class="separator"> | </span>
-  <span  class="work_show_menu_item" title="根据拼音声调自动标注平仄，仅供参考。" id="pz" > 平仄 </span>
+  <span class="show_work_menu_separator"> | </span>
+  <span  class="show_work_menu_item" title="根据拼音声调自动标注平仄，仅供参考。" id="pz" > 平仄 </span>
  <% } %>
- <span class="separator"> | </span>
- <span  class="work_show_menu_item" title="编辑作品。"  id="edit" > 编辑 </span>
- <span class="separator"> | </span>
- <span  class="work_show_menu_item" title="删除作品。"  id="delete" > 删除 </span>
+ <span class="show_work_menu_separator"> | </span>
+ <span  class="show_work_menu_item" title="编辑作品。"  id="edit" > 编辑 </span>
+ <span class="show_work_menu_separator"> | </span>
+ <span  class="show_work_menu_item" title="删除作品。"  id="delete" > 删除 </span>
+</div>
+<div>
+  <span id="show_header_close" class="modal_close" title="关闭此页面">关闭</span>
+</div>
 </script>
 
 {# 作品详细界面模版：模态框尾部功能区 显示关闭按键 #}
 <script id="template_work_detail_footer" type="text/html">
-    <span type="button" data-dismiss="modal">关闭</span>
+    <span id="show_footer_close" class="modal_close" >关闭</span>
 </script>
 
 {# 作品详细界面模版：模态框内容主界面 #}
@@ -536,12 +551,28 @@ template.helper('indent', function(text) {
 {# 作品详细信息显示风格控制区 #}
 <style>
 .show_work_header {
+  border-bottom: 1px solid #ccc;
+  background-color: #FFF8DC;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+.show_work_menu {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
 }
 .show_work_menu_item {
   cursor: pointer;
 }
+.show_work_menu_item:hover {
+  font-weight: bold;
+}
 .show_work_menu_separator {
   color: LightGrey;
+  padding: 0px 5px;
 }
 .show_work_body {
   background-color: #c2c8f6;
@@ -600,6 +631,11 @@ template.helper('indent', function(text) {
 }
 
 .show_work_footer {
+  background-color: #FFF8DC;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
 }
 </style>
 

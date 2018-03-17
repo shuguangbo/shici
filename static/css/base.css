@@ -1,6 +1,21 @@
 /*
  * 弹性框定义页面三段式布局 : 头体脚
  */
+* {
+  box-sizing: border-box;
+}
+input, textarea, select {
+  line-height: inherit;
+  font: inherit;
+}
+
+hr {
+  margin-top: 10px;
+  margin-bottom: 10px;
+  border: 0;
+  border-top: 1px solid #eee;
+}
+
 .page_container {
     width: 100%;
     display: flex;
@@ -34,8 +49,3 @@ body.home {
     text-decoration: none;
 }
 
-.modal-header, .modal-footer {
-    background-color: #FFF8DC;
-    cursor: pointer;
-    opacity: 0.5;
-}

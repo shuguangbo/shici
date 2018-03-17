@@ -26,15 +26,13 @@ function edit_work(work) {
 function show_work_editor(work) {
   var param = set_param(work);
 
-    console.log("[edit] cache", prepo);
-    console.log("[edit] work", work);
-    console.log("[edit] param", param );
+  //console.log("[edit] cache", prepo);
+  //console.log("[edit] work", work);
+  //console.log("[edit] param", param );
 
   var html = template('template_editor', param);
-  $('#workdetailcontent').html(trans_text(html));
-  $('#workDetail').modal({
-      backdrop: false
-  });
+  $('#modal_content').html(trans_text(html));
+  $('#modal').trigger('md_show');
 }
 
 // 保存当前编辑作品到服务器上的作品库中
@@ -49,7 +47,7 @@ function save_new() {
     spinner_start();
     $.post(url, {_xsrf:$.cookie('_xsrf'), work:JSON.stringify(work)}).done(function(data, status) {
 //        console.log("data: \n" + data + "\nstatus: " + status);
-        $('#workDetail').modal('hide');
+        $('#modal').trigger('md_close');
     }).fail(function(jqXHR, textStatus, errorThrown) {
         console.log("保存作品详失败: " + textStatus + ": " + errorThrown );
     }).always(function() {
@@ -59,7 +57,7 @@ function save_new() {
 
 // 检查作品必须条目是否满足 
 function check_work(work) {
-    console.log("Check ", work);
+    // console.log("Check ", work);
     return work.name.trim().length?(work.author.trim().length?(work.type.trim().length?(work.lines.length?(''):"请录入作品正文"):"请录入作品分类"):"请录入作者姓名"):"请录入作品名称"; 
 }
 
@@ -71,8 +69,8 @@ function preview_edit(obj) {
 // 预览当前编辑作品
 function pe_preview(obj) {
     var work = restore_cache(); 
-    console.log("[pe preview] cache", prepo);
-    console.log("[pe preview] restored work", work);
+    // console.log("[pe preview] cache", prepo);
+    // console.log("[pe preview] restored work", work);
     ret = check_work(work);
     if (ret.trim().length) {
         alert(ret);
@@ -81,7 +79,7 @@ function pe_preview(obj) {
     work.mark = "pinyin";
     work.cnum = cnum;
     var html = template('template_work_detail_body', work);
-    $('.editor_body').html(trans_text(html));
+    $('#editor_body').html(trans_text(html));
     $('#preview_edit').text(trans_text("编辑"));
     $('#preview_edit').attr('title',trans_text("编辑作品"));
     show_body_event_handler();
@@ -91,11 +89,11 @@ function pe_preview(obj) {
 function pe_edit(obj) {
     var work = restore_cache();
     var param = set_param(work);
-    console.log("[pe edit] cache", prepo);
-    console.log("[pe edit] restored work", work);
-    console.log("[pe edit] param", param );
+    // console.log("[pe edit] cache", prepo);
+    // console.log("[pe edit] restored work", work);
+    // console.log("[pe edit] param", param );
     var html = template('template_editor_body', param);
-    $('.editor_body').html(trans_text(html));
+    $('#editor_body').html(trans_text(html));
     $('#preview_edit').text(trans_text("预览"));
     $('#preview_edit').attr('title',trans_text("预览作品"));
     // 添加编辑器事件处理器
@@ -108,11 +106,11 @@ function pe_edit(obj) {
 function del_work(id) {
     var url = "/v1/del";
     if (!confirm(trans_text("作品删除后不能再恢复，确认删除此作品？"))) return;
-//    console.log("id: " + id);
+    // console.log("id: " + id);
     spinner_start();
     $.post(url, {_xsrf:$.cookie('_xsrf'), id:JSON.stringify(id)}).done(function(data, status) {
-//        console.log("data: \n" + data + "\nstatus: " + status);
-        $('#workDetail').modal('hide');
+        // console.log("data: \n" + data + "\nstatus: " + status);
+        $('#modal').trigger('md_close');
     }).fail(function(jqXHR, textStatus, errorThrown) {
         console.log("删除作品失败: " + textStatus + ": " + errorThrown );
     }).always(function() {
@@ -122,7 +120,7 @@ function del_work(id) {
 
 // 根据提供的作品信息初始化缓存
 function init_cache(work) {
-   /* 清空缓存 */
+   // 清空缓存 
    for ( var key in prepo ) delete prepo[key]; 
    ['id', 'name', 'author', 'preface', 'lines', 'type', 'category', 'tag', 'analyse', 'comment'].forEach(function(key, index) {
        prepo[key] = work[key];
@@ -290,6 +288,7 @@ function get_pinyin(param) {
           html += gen_pinyin_html(p);
           // 显示在相应的输出区域
           $(display_id).html(trans_text(html));
+          if ( text.trim().length > g_linelen ) $(display_id).css({'text-indent':'2em', 'text-align':'left'});
           // 添加事件处理器
           editor_item_output_event_handler({id:id, show_pinyin:show_pinyin, show_comment:show_comment});
       })
@@ -394,14 +393,14 @@ function blank_work(dp=true) {
 function set_param(work)
 {
    return { 
-     name: { config:{control_input:'input', show_pinyin:true, show_comment:true}, id:'name', text:work.name, ptext:work.pname, dptext:'dpname' in work?work.dpname:[], comment:'name' in work.comment?work.comment.name:[], placeholder:'在这里输入作品名称', title:'双击鼠标左键编辑作品名称' },
-     author: { config:{control_input:'input', show_pinyin:true, show_comment:false}, id:'author', text:work.author, ptext:work.pauthor, dptext:'dpauthor' in work?work.dpauthor:[], comment:[], placeholder:'在这里输入作者姓名', title:'双击鼠标左键编辑作者姓名' },
+     name: { config:{control_input:'input', size:g_linelen, maxlength:100, show_pinyin:true, show_comment:true}, id:'name', text:work.name, ptext:work.pname, dptext:'dpname' in work?work.dpname:[], comment:'name' in work.comment?work.comment.name:[], placeholder:'在这里输入作品名称，最多100字', title:'双击鼠标左键编辑作品名称', input_title:'这里是作品名称输入区' },
+     author: { config:{control_input:'input', size:g_linelen, maxlength:10, show_pinyin:true, show_comment:false}, id:'author', text:work.author, ptext:work.pauthor, dptext:'dpauthor' in work?work.dpauthor:[], comment:[], placeholder:'在这里输入作者姓名，最多10字', title:'双击鼠标左键编辑作者姓名', input_title:'这里是作者姓名输入区' },
      type: { config:{control_input:'select', options:['诗','词','文','曲'], show_pinyin:false, show_comment:false}, id:'type', text:work.type},
      category: { config:{control_input:'select', options:category[work.type], show_pinyin:false}, id:'category', text:work.category},
-     preface: { config:{control_input:'textarea', size:500, show_pinyin:true, show_comment:true}, id:'preface', text:work.preface, ptext:work.ppreface, dptext:'dppreface' in work?work.dppreface:[], comment:'preface' in work.comment?work.comment.preface:[], placeholder:'在这里输入序言，支持回车换行。', title:'双击鼠标左键编辑序言'},
-     lines: { config:{control_input:'textarea', size:1000, show_pinyin:true, show_comment:true}, id:'lines', text:work.lines, ptext:work.plines, dptext:'dplines' in work?work.dplines:bdptext(work.lines.split('\n').length), comment:'lines' in work.comment?work.comment.lines:[], placeholder:'在这里输入正文，支持回车换行。', title:'双击鼠标左键编辑正文'},
-     tag: { config:{control_input:'textarea', show_pinyin:false, show_comment:false}, id:'tag', text:work.tag.join(' '), ptext:[],dptext:[], comment:[], placeholder:'在这里输入标签，以空格分隔。', title:'双击鼠标左键编辑标签' },
-     analyse: { config:{control_input:'textarea', show_pinyin:false, show_comment:false}, id:'analyse', text:work.analyse, ptext:[], dptext:[], comment:[], placeholder:'在这里输入作品赏析，支持回车换行。', title:'双击鼠标左键编辑赏析' }
+     preface: { config:{control_input:'textarea', cols:g_linelen, maxlength:500, show_pinyin:true, show_comment:true}, id:'preface', text:work.preface, ptext:work.ppreface, dptext:'dppreface' in work?work.dppreface:[], comment:'preface' in work.comment?work.comment.preface:[], placeholder:'在这里输入序言，最多500字，支持回车换行。', title:'双击鼠标左键编辑序言', input_title:'这里是序言输入区'},
+     lines: { config:{control_input:'textarea', cols:g_linelen, maxlength:1000, show_pinyin:true, show_comment:true}, id:'lines', text:work.lines, ptext:work.plines, dptext:'dplines' in work?work.dplines:bdptext(work.lines.split('\n').length), comment:'lines' in work.comment?work.comment.lines:[], placeholder:'在这里输入正文，最多100字，支持回车换行。', title:'双击鼠标左键编辑正文', input_title:'这里是正文输入区'},
+     tag: { config:{control_input:'textarea', cols:g_linelen, maxlength:200, show_pinyin:false, show_comment:false}, id:'tag', text:work.tag.join(' '), ptext:[],dptext:[], comment:[], placeholder:'在这里输入标签，以空格分隔，最多200字。', title:'双击鼠标左键编辑标签', input_title:'这里是标签输入区' },
+     analyse: { config:{control_input:'textarea', cols:g_linelen, maxlength: 1000, show_pinyin:false, show_comment:false}, id:'analyse', text:work.analyse, ptext:[], dptext:[], comment:[], placeholder:'在这里输入作品赏析，最多1000字，支持回车换行。', title:'双击鼠标左键编辑赏析', input_title:'这里是赏析输入区' }
   }
 }
 // 根据作品正文行数生成对应的空白多音字数组
@@ -572,12 +571,12 @@ function output_item(data) {
    var cd_id = data.id + '_' + data.index + "_comment_display";
    var ci_id = data.id + '_' + data.index + "_comment_input";
 
-    html += "<div id=\"" + pinyin_id + "\" class=\"output_item\" >";
+    html += "<div id=\"" + pinyin_id + "\"" + " class=\"output_item\" " + indent(data.text) + " >";
     data.show_pinyin ? html += pin(data.id, data.index, data.text, data.ptext, data.dptext) : html += show_text(data.text, '\n'); 
     html += "</div>"
     if ( data.show_comment ) {
       html += "<div id=\"" + cd_id + "\" class=\"output_item\" title=\"点击编辑注释\" hidden placeholder='注释显示区'>" + show_comment_v1(data.comment) + "</div>";
-      html += "<textarea id=\"" + ci_id + "\" class=\"output_item\" title=\"编辑注释\" hidden placeholder=\"在这里编辑上面文字的注释，文字和注释间以中文冒号分隔。例如 立春: 二十四节气中的第一个节气，代表春季的开始。\">" + show_comment_v2(data.comment) + "</textarea>";
+      html += "<textarea id=\"" + ci_id + "\"" + "cols=\"" + g_linelen + "\"" + " class=\"output_item\" title=\"编辑注释\" maxlength=\"500\" hidden placeholder=\"在这里编辑上面文字的注释，最多500字。文字和注释间以中文冒号分隔。例如 立春: 二十四节气中的第一个节气，代表春季的开始。\">" + show_comment_v2(data.comment) + "</textarea>";
     }
     return html;
 }
@@ -639,7 +638,7 @@ function mark_pinyin(pindex, data) {
 }
 // 显示文字输入区，支持单行和多行
 function show_input(id){
-   var rows = $(id).val().split('\n').length + $(id).val().length/20;
+   var rows = count_rows($(id).val());
    var type = $(id).attr('type');
    if ( type == 'textarea' ) {
        $(id).show().focus().attr('rows',rows?rows:1);
@@ -651,7 +650,7 @@ function show_input(id){
 function editor_event_handler() {
     editor_header_event_handler(); 
     editor_body_event_handler(); 
-//    editor_footer_event_handler(); 
+    editor_footer_event_handler(); 
 }
 // 设置作品编辑器头部菜单项事件处理器
 function editor_header_event_handler() {
@@ -659,6 +658,10 @@ function editor_header_event_handler() {
     $('#save_new').on('click', save_new);
     // 菜单项 - 预览和编辑
     $('#preview_edit').on('click', function(){ preview_edit(this); });
+    $('#editor_header_close').on('click', function() { $('#modal').trigger('md_close');});
+}
+function editor_footer_event_handler() {
+    $('#editor_footer_close').on('click', function() { $('#modal').trigger('md_close');});
 }
 
 // 设置作品编辑器中部各单元事件处理器
@@ -820,30 +823,34 @@ template.helper('tf', function(value) {
    return value ? "true" : "false";
 });
 
+// 模板辅助函数 - 多行输入框行数 
+template.helper('count_rows', function(text) {
+   return count_rows(text);
+});
 </script>
 
 {# 诗词编辑界面模版 总体布局 #}
 <script id="template_editor" type="text/html">
-  <div class="editor_header"  > <% include('template_editor_header') %> </div> 
-  <div class="editor_body"    > <% include('template_editor_body')   %> </div> 
-  <div class="editor_footer"  > <% include('template_editor_footer') %> </div> 
+  <div id="editor_header" class="modal_header editor_header"  > <% include('template_editor_header') %> </div> 
+  <div id="editor_body"   class="modal_body editor_body"      > <% include('template_editor_body')   %> </div> 
+  <div id="editor_footer" class="modal_footer editor_footer"  > <% include('template_editor_footer') %> </div> 
 </script>
 
 {# 诗词编辑界面模版：编辑界面头部区 显示功能按钮 #}
 <script id="template_editor_header" type="text/html">
-  <div>
-  <span style="cursor:pointer;" title="保存作品" id="save_new" > 保存 </span>
-  <span class="separator"> | </span>
-  <span style="cursor:pointer;" title="预览作品" id="preview_edit" > 预览 </span>
+  <div class="editor_menu">
+    <span class="editor_menu_item" title="保存作品" id="save_new" > 保存 </span>
+    <span class="editor_menu_separator"> | </span>
+    <span class="editor_menu_item" title="预览作品" id="preview_edit" > 预览 </span>
   </div>
   <div>
-  <span style="cursor:pointer" data-dismiss="modal" aria-hidden="true" title="关闭此编辑界面">关闭</span>
+    <span id="editor_header_close" class="modal_close" title="关闭此编辑界面">关闭</span>
   </div>
 </script>
 
 {# 诗词编辑界面模版：编辑界面脚部区 显示关闭按键 #}
 <script id="template_editor_footer" type="text/html">
-  <span style="float:right;cursor:pointer;opacity:.5;" data-dismiss="modal" aria-hidden="true" title="关闭此编辑界面">关闭</span>
+  <span id="editor_footer_close" class="modal_close" title="关闭此编辑界面">关闭</span>
 </script>
 
 {# 诗词编辑界面模版：编辑界面主体区 显示诗词各项编辑界面 #}
@@ -889,10 +896,10 @@ template.helper('tf', function(value) {
   <div id="<%=# id %>_input_container" class="editor_item_input">
     <% if ( config.control_input == 'input' ) { %>
       {# 单行文本输入 #}
-      <input id="<%=# id %>_input" type="text" placeholder="<%=# placeholder %>" value="<%=# show_text_v1(text, ' ') %>" data_show_pinyin="<%=# tf(config.show_pinyin) %>" data_show_comment="<%=# tf(config.show_comment) %>" <% if ( text.length ) { %> hidden <% } %>></input>
+      <input id="<%=# id %>_input" type="text" placeholder="<%=# placeholder %>" size="<%=# config.size %>" maxlength="<%=# config.maxlength %>" value="<%=# show_text_v1(text, ' ') %>" title="<%=# input_title %>" data_show_pinyin="<%=# tf(config.show_pinyin) %>" data_show_comment="<%=# tf(config.show_comment) %>" <% if ( text.length ) { %> hidden <% } %>></input>
     <% } else if ( config.control_input == 'textarea' ) { %>
       {# 多行文本输入 #}
-      <textarea id="<%=# id %>_input" type="textarea" placeholder="<%=# placeholder %>" rows="<%=# text.length %>" maxlength="<%=# config.size %>" data_show_pinyin="<%=# tf(config.show_pinyin) %>" data_show_comment="<%=# tf(config.show_comment) %>" <% if ( text.length ) { %> hidden <% } %> ><%=# show_text_v1(text, '\n') %></textarea>
+      <textarea id="<%=# id %>_input" type="textarea" placeholder="<%=# placeholder %>" cols="<%=# config.cols %>" rows="<%=# count_rows(text) %>" maxlength="<%=# config.maxlength %>" title="<%=# input_title %>" data_show_pinyin="<%=# tf(config.show_pinyin) %>" data_show_comment="<%=# tf(config.show_comment) %>" <% if ( text.length ) { %> hidden <% } %> ><%=# show_text_v1(text, '\n') %></textarea>
     <% } %>
   </div>
 </div>
@@ -917,18 +924,30 @@ template.helper('tf', function(value) {
     justify-content: center;
     align-items: flex-start;
 }
-.editor_header, .editor_footer {
+.editor_header{
     background-color: #FFF8DC;
-    cursor: pointer;
-    opacity: 0.5;
     display: flex;
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
-    padding: 15px;
 }
-.editor_body {
-    background-color: #c2c8f6;
+.editor_menu_item {
+  cursor: pointer;
+}
+.editor_menu_item:hover {
+  font-weight: bold;
+}
+
+.editor_menu_separator {
+  padding: 0px 5px;
+  color: LightGrey;
+}
+.editor_footer {
+  background-color: #FFF8DC;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
 }
 .editor_work_item {
     width: 100%;
