@@ -1,23 +1,18 @@
 // 作品搜索、显示、编辑所需通用全局变量和函数
-var key_Enter = 13;
-var key_Clear = 12;
-var key_Delete = 46;
-var key_BackSpace = 8;
-var category = {'诗':['五言古诗','五言乐府','五言绝句','五言律诗','七言古诗','七言乐府','七言绝句','七言律诗',"其它"],'词':[],'文':[],'曲':[]};
-var g_chinese_char=/[\u3400-\u9FFF\uF900-\uFAFF]/;
-var g_nonchinese_char=/[^\u3400-\u9FFF\uF900-\uFAFF]/;
-var g_nonchinese_all=/[^\u3400-\u9FFF\uF900-\uFAFF]+/g;
+const key_Enter = 13;
+const key_Clear = 12;
+const key_Delete = 46;
+const key_BackSpace = 8;
+const category = {'诗':['五言古诗','五言乐府','五言绝句','五言律诗','七言古诗','七言乐府','七言绝句','七言律诗',"其它"],'词':[],'文':[],'曲':[]};
+const g_chinese_char=/[\u3400-\u9FFF\uF900-\uFAFF]/;
+const g_nonchinese_char=/[^\u3400-\u9FFF\uF900-\uFAFF]/;
+const g_nonchinese_all=/[^\u3400-\u9FFF\uF900-\uFAFF]+/g;
 
-var g_linelen = 30;       // 显示输入允许最大字符数
-var fanjian = "j";               /* 缺省显示简体字 */
-var dialect = "aisjying";        /* 缺省发音为迅飞普通话 */
-var tts_vendor = "tts_xunfei";   /* 缺省语音合成使用讯飞 */
-var tilestyle = "bookmark";      /* 缺省搜索结果以书签形式显示 */
-var mark = "none";               /* 缺省不标注拼音和平仄 */
+const g_linelen = 30;       // 显示输入允许最大字符数
 var spinner;
 var spinner_target;
 
-var spinner_opts = {
+const spinner_opts = {
   lines: 9 // The number of lines to draw
 , length: 0 // The length of each line
 , width: 6 // The line thickness
@@ -42,14 +37,10 @@ var spinner_opts = {
 
 function spinner_start(){
 //    console.log("start spinner");
-    if ( typeof(spinner_target) == 'undefined') {
+    if ( typeof(spinner_target) === 'undefined') {
         spinner_target = document.getElementById('spinner_container');
     }
-//   if ( typeof(spinner) == 'undefined' ) {
-        spinner = new Spinner(spinner_opts).spin(spinner_target);
-//   } else {
- //       spinner.spin();
-//   }
+    spinner = new Spinner(spinner_opts).spin(spinner_target);
 };
 
 function spinner_stop() {
@@ -84,18 +75,18 @@ function read_work(work)
 /* Not in use yet */
 function read_work_v1(work)
 {
-   var text = work['name'] + " " + work['author'] + " " + work['preface'] + work['lines'].join(' ');
+   let text = `${work.name} ${work.author} ${work.preface} ${work.lines.join(' ')}`;
    read_work(text);
 }
 
 /* 繁简体切换 */
 function toggle_fanjian()
 {
-    if ( fanjian == "j" ) {
-        fanjian = "f"
-    } else {
-        fanjian = "j"
-    }
+    let fanjian = localStorage.getItem('FJ');
+    if ( fanjian === null ) {
+        fanjian = 'j';
+    } 
+    fanjian = fanjian == "j" ? "f" : "j";
     localStorage.setItem("FJ", fanjian);
     display_fanjian();
 }
@@ -103,13 +94,13 @@ function toggle_fanjian()
 /* 根据繁简设置改变页面 */
 function display_fanjian()
 {
-    if (localStorage.getItem("FJ") == null || localStorage.getItem("FJ") == "undefined") { 
-        localStorage.setItem("FJ", fanjian); 
-    } else {
-        fanjian = localStorage.getItem("FJ");
+    let fanjian = localStorage.getItem('FJ');
+    if ( fanjian === null ) {
+        fanjian = 'j';
+        localStorage.setItem('FJ', fanjian); 
     } 
 
-    if ( fanjian == "j") {
+    if ( fanjian == 'j') {
         $('#fj').text('繁');
         $(document.body).t2s();
     } else {
@@ -120,34 +111,35 @@ function display_fanjian()
 /* 切换平仄 */
 function toggle_pz()
 {
-    mark = mark == 'pz'?'none':'pz';
-    localStorage.setItem("mark", mark); 
+    let mark = localStorage.getItem('mark') === 'pz'?'none':'pz';
+    localStorage.setItem('mark', mark); 
     update_work_detail_body();
 }
 
 /* 切换拼音 */
 function toggle_pinyin()
 {
-    mark = mark == 'pinyin'?'none':'pinyin';
-    localStorage.setItem("mark", mark); 
+    let mark = localStorage.getItem('mark') === 'pinyin'?'none':'pinyin';
+    localStorage.setItem('mark', mark); 
     update_work_detail_body();
 }
 
 /* 显示标注 */
-function get_mark()
-{
-    if (localStorage.getItem("mark") == null || localStorage.getItem("mark") == "undefined") { 
-        localStorage.setItem("mark", 'none'); 
+function get_mark() {
+    let mark = localStorage.getItem('mark');
+    if ( mark === null ) {
+        localStorage.setItem('mark', 'none'); 
         mark = 'none';
-    } else {
-        mark = localStorage.getItem("mark");
     } 
+    return mark;
 }
 
 /* 设置发音 */
 function set_dialect(value)
 {
-    if ( dialect == value ) {
+    let dialect = localStorage.getItem("tts_vendor") === 'tts_baidu' ? localStorage.getItem("bddialect") : localStorage.getItem("xfdialect");
+
+    if ( dialect === value ) {
     /* 没有变化，直接返回 */
          return 0;
     }
@@ -157,7 +149,7 @@ function set_dialect(value)
     loadedData = false;
     audio_state = 0;
 
-    if ( localStorage.getItem("tts_vendor") == 'tts_baidu' ) {
+    if ( localStorage.getItem("tts_vendor") === 'tts_baidu' ) {
         localStorage.setItem("bddialect", value);
     } else {
         localStorage.setItem("xfdialect", value);
@@ -166,20 +158,29 @@ function set_dialect(value)
 
 function set_tile(value)
 {
-    if ( tilestyle == value ) {
+    let tilestyle = localStorage.getItem('tilestyle');
+    if ( tilestyle === value ) {
        return 0;
     }
-    tilestyle = value;
-    localStorage.setItem("tilestyle", tilestyle);
+    localStorage.setItem('tilestyle', value);
 }
+function get_tilestyle() {
+    let tilestyle = localStorage.getItem('tilestyle');
+    if ( tilestyle === null ) {
+       tilestyle = 'bookmark';
+       localStorage.setItem('tilestyle', tilestyle);
+    }
+    return tilestyle;
+}
+
 /* 设置语音合成服务提供商 */
 function set_tts_vendor(value)
 {
-    if ( tts_vendor == value ) {
+    let tts_vendor = localStorage.getItem('tts_vendor');
+    if ( tts_vendor === value ) {
         return 0;
     }
     localStorage.setItem("tts_vendor", value);
-    tts_vendor = value;
     show_tts_vendor();
     /* 重置tts变量，以便重新获取音频数据 */
     loadedData = false;
@@ -188,15 +189,14 @@ function set_tts_vendor(value)
 /* 显示语音服务提供商对应的tts参数设置页面 */
 function show_tts_vendor()
 {
-    if ( localStorage.getItem("tts_vendor") != null && localStorage.getItem("tts_vendor") != "undefined") {
-        tts_vendor = localStorage.getItem("tts_vendor");
-    }
+    let tts_vendor = localStorage.getItem('tts_vendor');
+    if ( tts_vendor === null ) tts_vendor = 'tts_xunfei';
 
-    if ( tts_vendor == 'tts_xunfei' ) {
+    if ( tts_vendor === 'tts_xunfei' ) {
        $('#tts_xunfei').attr('checked', true); 
        $('#tts_xunfei_config').show();
        $('#tts_baidu_config').hide();
-    } else if ( tts_vendor == 'tts_baidu' ) {
+    } else if ( tts_vendor === 'tts_baidu' ) {
        $('#tts_baidu').attr('checked', true); 
        $('#tts_xunfei_config').hide();
        $('#tts_baidu_config').show();
@@ -208,29 +208,27 @@ function show_tts_vendor()
 /* 在设置页面显示对应语音服务提供商的tts发音选项 */
 function display_dialect()
 {
-    if (( tts_vendor == "tts_baidu" ) && ( localStorage.getItem("bddialect") == null || localStorage.getItem("bddialect") == "undefined")) {
-        localStorage.setItem("bddialect", '0'); 
-    } else if (localStorage.getItem("xfdialect") == null || localStorage.getItem("xfdialect") == "undefined") {
-        localStorage.setItem("xfdialect", 'aisjying'); 
+    if (( tts_vendor == 'tts_baidu' ) && ( localStorage.getItem('bddialect') === null )) {
+        localStorage.setItem('bddialect', '0'); 
+    } else if (localStorage.getItem('xfdialect') === null ) {
+        localStorage.setItem('xfdialect', 'aisjying'); 
     }
-    dialect = localStorage.getItem("xfdialect");
-    var obj="[value='" + dialect + "']";
+    let dialect = localStorage.getItem('xfdialect');
+    let obj=`[value="${dialect}"]`;
     $(obj).attr('checked', true);
-    dialect = localStorage.getItem("bddialect");
-    var obj="[value='bdtts" + dialect + "']";
+    dialect = localStorage.getItem('bddialect');
+    obj=`[value="bdtts${dialect}"]`;
     $(obj).attr('checked', true);
 }
 
 function display_tilestyle()
 {
-    if ( localStorage.getItem('tilestyle') == null || localStorage.getItem('tilestyle') == 'undefined' || ['bookmark', 'card'].indexOf(localStorage.getItem('tilestyle')) == -1 ) {
-        if ( ['bookmark', 'card'].indexOf(tilestyle) == -1 ) {
-            tilestyle = 'bookmark';
-        } 
+    let tilestyle = localStorage.getItem('tilestyle');
+    if ( tilestyle === null || ['bookmark', 'card'].indexOf(tilestyle) == -1 ) {
+        tilestyle = 'bookmark';
         localStorage.setItem('tilestyle', tilestyle);
     } 
-    tilestyle = localStorage.getItem('tilestyle');
-    var obj = "[value='" + tilestyle + "']";
+    let obj = `[value='${tilestyle}']`;
     $(obj).attr('checked',true);
 }
 
@@ -244,26 +242,20 @@ function trans_keywords()
 
 function trans_text(text)
 {
-    if (localStorage.getItem("FJ") == null || localStorage.getItem("FJ") == "undefined") { 
-        localStorage.setItem("FJ", 'j'); 
+    if (localStorage.getItem('FJ') === null ) { 
+        localStorage.setItem('FJ', 'j'); 
     } 
-    if ( localStorage.getItem("FJ") == 'j' ) {
-        result = $.t2s(text);
-    } else {
-        result = $.s2t(text);
-    }
+    let result = localStorage.getItem('FJ') === 'j' ? $.t2s(text) : $.s2t(text);
     return result;
 }
 
 $(function() {
-    $("#modal").on("md_show", function() {
-//        console.log("show modal");
+    $('#modal').on('md_show', function() {
         audio_state = 0; // Need initializing audio
         loadedData = false;
     });
 
-    $("#modal").on("md_close", function() {
-//        console.log("hide modal");
+    $('#modal').on('md_close', function() {
         stop(); //Stop play audio - call stop() in tts_demo.js
         audio_state = 0; // Need initializing audio
         spinner_stop();
@@ -277,35 +269,35 @@ $(function() {
     });
 });
 
-pz_dict = {
-    "ā": "平",
-    "á": "平",
-    "ǎ": "仄",
-    "à": "仄",
-    "ē": "平",
-    "é": "平",
-    "ě": "仄",
-    "è": "仄",
-    "ō": "平",
-    "ó": "平",
-    "ǒ": "仄",
-    "ò": "仄",
-    "ī": "平",
-    "í": "平",
-    "ǐ": "仄",
-    "ì": "仄",
-    "ū": "平",
-    "ú": "平",
-    "ǔ": "仄",
-    "ù": "仄",
-    "ü": "平",
-    "ǘ": "平",
-    "ǚ": "仄",
-    "ǜ": "仄",
-    "ń": "平",
-    "ň": "仄",
-    "ǹ": "仄",
-    "\u1e3f": "平"
+const pz_dict = {
+    'ā': '平',
+    'á': '平',
+    'ǎ': '仄',
+    'à': '仄',
+    'ē': '平',
+    'é': '平',
+    'ě': '仄',
+    'è': '仄',
+    'ō': '平',
+    'ó': '平',
+    'ǒ': '仄',
+    'ò': '仄',
+    'ī': '平',
+    'í': '平',
+    'ǐ': '仄',
+    'ì': '仄',
+    'ū': '平',
+    'ú': '平',
+    'ǔ': '仄',
+    'ù': '仄',
+    'ü': '平',
+    'ǘ': '平',
+    'ǚ': '仄',
+    'ǜ': '仄',
+    'ń': '平',
+    'ň': '仄',
+    'ǹ': '仄',
+    '\u1e3f': '平'
 }
 
 // 根据拼音返回韵律
@@ -313,14 +305,14 @@ pz_dict = {
 // 仄：三、四声
 function getpz(ptext) 
 {
-    var text = ptext.trim();
+    let text = ptext.trim();
     if ( text.length == 0 ) return '';
 
-   for ( i in text ) {
-       var c = text[i];
+   for ( let i in text ) {
+       let c = text[i];
        if ( c in pz_dict ) return pz_dict[c];
    }
-   return "平";
+   return '平';
 
 }
 
@@ -331,7 +323,7 @@ function pzable(category) {
 
 // 判断对象是否为空
 function isblank(obj) {
-   var count = 0;
+   let count = 0;
    if ( obj instanceof Array ) {
       obj.forEach(function(item, index) { count += isblank(item); });
    } else if ( typeof(obj) == 'string' ) {
@@ -375,38 +367,35 @@ function remove_nonchinese(text) {
 
 // 生成显示中文平仄的HTML代码
 function gen_pz_html(data) {
-    var html = '';
+    let html = '';
     if ( data.text.length == 0 ) return html;
     var pindex = 0;
-    for ( var index in data.text ) {
+    for ( let index in data.text ) {
         if ( is_nonchinese_char(data.text[index]) ) {
-            html += ( index == 0 ? "" : (is_nonchinese_char(data.text[index-1]) ? "" : "</ruby>")) + data.text[index] ;
+            html += ( index === 0 || is_nonchinese_char(data.text[index-1])) ? '' : '</ruby>' + data.text[index] ;
             continue;
         }
-        html += ( index == 0 ? "<ruby>" : ( is_nonchinese_char(data.text[index-1]) ? "<ruby>" : "" )) + data.text[index] + mark_pz(pindex, data) + ( index == data.text.length ? "</ruby>":"" );
+        html += ( index === 0 || is_nonchinese_char(data.text[index-1])) ? '<ruby>' : '' + data.text[index] + mark_pz(pindex, data) + ( index === data.text.length ? '</ruby>':'' );
         pindex += 1;
     }
     return html;
 }
 // 生成标记单个汉字平仄的HTML代码
 function mark_pz(pindex, data) {
-    var html = "<rt>";
-    html += getpz(data.dan_pinyin[pindex]);
-    html += "</rt>";
+    let html = `<rt>${getpz(data.dan_pinyin[pindex])}</rt>`;
     return html;
 }
 
 // 判断是否需要缩进
 function indent(text) {
-   var html = text.length > g_linelen ? "style=\"text-indent: 2em;text-align: left;\"" : "";
-   // console.log("Text: " + text + " Indent: " + html);
+   var html = text.length > g_linelen ? `style="text-indent: 2em;text-align: left;"` : '';
    return html;
 }
 
 // 计算多行输入区需要显示的行数
 function count_rows(text) {
-    var row = text.split('\n').length;
-    var count = 0;
+    let row = text.split('\n').length;
+    let count = 0;
     text.split('\n').forEach(function(item) {
         count += item.trim().length > g_linelen ? item.trim().length/g_linelen : 0;
     });

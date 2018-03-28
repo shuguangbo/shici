@@ -499,7 +499,7 @@ function gen_comment_html(comment) {
     var html = '';
     for ( var index in comment ) {
         for ( var key in comment[index] ) {
-            html +="<span>" + cnum[index] + key + "：" + comment[index][key] + "</span>"
+            html += `<span>${cnum[index]}${key}：${comment[index][key]}</span>`;
         }
     }
     return html;
@@ -518,7 +518,7 @@ function pin(id, section, text, dan_pinyin, duo_pinyin) {
 function list_category(type) {
     var html='';
     for ( var index in category[type] ) {
-        html+="<option value=\"" + category[type][index] + "\" " + ">" + category[type][index] + "</option>";
+        html+=`<option value="${category[type][index]}">${category[type][index]}</option>`;
     }
     $('#category_input').show();
     category[type].length == 0 ? $('#category_input').hide() : $('#category_input').html(trans_text(html));
@@ -567,17 +567,11 @@ function show_output(data) {
 // 生成输出单元的HTML
 function output_item(data) {
    var html = '';
-   var pinyin_id = data.id + "_" + data.index;
-   var cd_id = data.id + '_' + data.index + "_comment_display";
-   var ci_id = data.id + '_' + data.index + "_comment_input";
+   var pinyin_id = `${data.id}_${data.index}`;
+   var cd_id = `${data.id}_${data.index}_comment_display`;
+   var ci_id = `${data.id}_${data.index}_comment_input`;
 
-    html += "<div id=\"" + pinyin_id + "\"" + " class=\"output_item\" " + indent(data.text) + " >";
-    data.show_pinyin ? html += pin(data.id, data.index, data.text, data.ptext, data.dptext) : html += show_text(data.text, '\n'); 
-    html += "</div>"
-    if ( data.show_comment ) {
-      html += "<div id=\"" + cd_id + "\" class=\"output_item\" title=\"点击编辑注释\" hidden placeholder='注释显示区'>" + show_comment_v1(data.comment) + "</div>";
-      html += "<textarea id=\"" + ci_id + "\"" + "cols=\"" + g_linelen + "\"" + " class=\"output_item\" title=\"编辑注释\" maxlength=\"500\" hidden placeholder=\"在这里编辑上面文字的注释，最多500字。文字和注释间以中文冒号分隔。例如 立春: 二十四节气中的第一个节气，代表春季的开始。\">" + show_comment_v2(data.comment) + "</textarea>";
-    }
+    html += `<div id="${pinyin_id}" class="output_item" ${indent(data.text)}>${data.show_pinyin ? pin(data.id, data.index, data.text, data.ptext, data.dptext) : show_text(data.text, '\n')}</div>${data.show_comment ? `<div id="${cd_id}" class="output_item" title="点击编辑注释" hidden placeholder='注释显示区'>${show_comment_v1(data.comment)}</div><textarea id="${ci_id}" cols="${g_linelen}" class="output_item" title="编辑注释" maxlength="500" hidden placeholder="在这里编辑上面文字的注释，最多500字。文字和注释间以中文冒号分隔。例如 立春: 二十四节气中的第一个节气，代表春季的开始。">${show_comment_v2(data.comment)}</textarea>` :''}`; 
     return html;
 }
 
@@ -590,7 +584,7 @@ function show_comment_v2(comment) {
     var html = '';
     for ( var index in comment ) {
         for ( var key in comment[index] ) {
-            html +=key + "：" + comment[index][key] + '\n';
+            html +=`${key}：${comment[index][key]}\n`;
         }
     }
     return html;
@@ -606,13 +600,13 @@ function gen_pinyin_html(data) {
     var html='';
     if ( data.text.length == 0 ) return html;
 
-    var pindex = 0;
-    for ( var index in data.text ) {
+    let pindex = 0;
+    for ( let index in data.text ) {
         if ( is_nonchinese_char(data.text[index]) ) {
-            html += ( index == 0 ? "" : (is_nonchinese_char(data.text[index-1]) ? "" : "</ruby>")) + data.text[index] ;
+            html += `${index == 0 || is_nonchinese_char(data.text[index-1]) ? "" : "</ruby>"}${data.text[index]}`;
             continue;
         }
-        html += ( index == 0 ? "<ruby>" : ( is_nonchinese_char(data.text[index-1]) ? "<ruby>" : "" )) + data.text[index] + mark_pinyin(pindex, data) + ( index == data.text.length ? "</ruby>":"" );
+        html += `${index == 0 || is_nonchinese_char(data.text[index-1]) ? "<ruby>" : "" }${data.text[index]}${mark_pinyin(pindex, data)}${index == data.text.length ? "</ruby>":"" }`;
         pindex += 1;
     } 
     return html;
@@ -625,9 +619,9 @@ function gen_pinyin_html(data) {
 function mark_pinyin(pindex, data) {
     var html = "<rt>";
     if (('duo_pinyin' in data) && (pindex in data.duo_pinyin) && ( typeof data.duo_pinyin[pindex] == 'object') && (data.duo_pinyin[pindex].length > 1 )) {
-        html += "<select id=\"" + data.id + "_" + data.section + "_" + pindex + "\" >";
+        html += `<select id="${data.id}_${data.section}_${pindex}">`;
         for ( var num in data.duo_pinyin[pindex] ) {
-           html += "<option value=\"" + data.duo_pinyin[pindex][num] + "\" " + ( data.duo_pinyin[pindex][num] == data.dan_pinyin[pindex] ? " selected >" : ">" ) + data.duo_pinyin[pindex][num] + "</option>";
+           html += `<option value="${data.duo_pinyin[pindex][num]}" ${data.duo_pinyin[pindex][num] == data.dan_pinyin[pindex] ? " selected" : ""}> ${data.duo_pinyin[pindex][num]} </option>`;
         }
         html += "</select>";
     } else {
@@ -805,8 +799,7 @@ template.helper('nonchinese_char', function(text) {
 template.helper('list_options', function(options, selected) {
     var html='';
     for ( var index in options ) {
-       var s = options[index] == selected ? 'selected' : '';
-       html+="<option value=\"" + options[index] + "\" " + s + ">" + options[index] + "</option>";
+       html += `<option value="${options[index]}" ${options[index] == selected ? 'selected' : ''}> ${options[index]}</option>`;
     }
     return html;
 });

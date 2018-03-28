@@ -43,7 +43,7 @@ settings = {
         "cookie_secret": "3c4ce17055943c777753574a71b370e3",
         "static_path": config.static_path,
         "template_path": config.template_path,
-        "xsrf_cookies": True,
+        "xsrf_cookies": False,
         "debug": options.debug
 }
 

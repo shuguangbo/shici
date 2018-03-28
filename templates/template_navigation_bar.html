@@ -28,7 +28,7 @@ $(document).ready(function(){
     $('#search_box').mouseover(function(){ $(this).focus(); });
 //    $('#search_box').change(function(event){ search_key_press(event, this); }); 
     $('#search_box').keypress(function(event){ search_key_press(event, this); }); 
-    $('#config').click(function(){ $('#config_panel').toggle() });
+    $('#config').click(function(){ $('#config_panel').fadeToggle() });
     $('#classic_work').click(function(){ classic_work(); });
     $('#new_work').click(function(){ new_work(); });
     $('#home').click(function() { location.href="/"; });

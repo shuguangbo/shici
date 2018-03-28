@@ -40,7 +40,7 @@
 <script>
 $(document).ready(function(){
     // 设置面板事件处理器
-    $("#config_panel").click(function(){ $(this).hide(); });
+    $("#config_panel").click(function(){ $(this).fadeToggle(); });
     $("#fj").mouseover(function(){ toggle_fanjian(); });
     $("input[name='tilestyle']").mouseover(function(){
         this.checked = true;

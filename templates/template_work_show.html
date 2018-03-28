@@ -63,7 +63,7 @@ function display_search_result(work_set) {
   if ( work_set.length == 0 ) {
       return 0;
   }
-  var html = template('template_work_search_result', {wsrs: tilestyle, works:work_set});
+  var html = template('template_work_search_result', {wsrs: get_tilestyle(), works:work_set});
   //console.log(html);
   $('#content').html(trans_text(html));
   // 添加搜索结果事件处理器 
@@ -105,23 +105,19 @@ function classic_work() {
 }
 
 function show_work_detail(work) {
-    work.mark = pzable(work.category)?mark:(mark=='pz'?'none':mark);
+    let mark = get_mark();
+    work.mark = pzable(work.category)?mark:(mark==='pz'?'none':mark);
     work.cnum = cnum;
     last_id = work.id;
     var html = template('template_work_detail', work);
     $('#modal_content').html(trans_text(html));
     $('#modal').trigger('md_show');
-/*
-    $('#workdetailcontent').html(trans_text(html));
-    $('#workDetail').modal({
-        keyboard: true
-    });
-*/
     // 添加作品显示区事件处理器
     show_event_handler();
 }
 
 function update_work_detail_body() {
+    let mark = get_mark();
     if ( typeof(work) == 'undefined' || $.isEmptyObject(work) ) return;
     work.mark = pzable(work.category)?mark:(mark=='pz'?'none':mark);
     var html= template('template_work_detail_body_zw', work);
@@ -265,12 +261,6 @@ template.helper('isblank', function(comment) {
 
 // 模版辅助函数 - 确定是否首行缩进
 template.helper('indent', function(text) {
-    var html = '';
-//    if ( type == '词' && obj.scrollHeight > 20 ) {
-//    if ( text.length > 30 ) {
-//      html = "style=\"text-indent: 2em;text-align: left;\"";
-//    }
-//    return html; 
     return indent(text);
 });
 </script>
