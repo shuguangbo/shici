@@ -1,0 +1,102 @@
+{# 右键上下文菜单模块 #}
+{# 参考文章 https://blog.csdn.net/qq_19558705/article/details/50364650 #}
+<style type="text/css">
+    .context_menu {
+      margin: 0px;
+      padding: 0px;
+      width: 150px;
+      background: #fff;
+      box-shadow: 1px 1px 30px #ccc;
+      display: none;
+      position:absolute;
+      z-index: 110;
+    }
+    .context_menu header {
+      background-color: GhostWhite;
+      border-bottom: 2px solid #ddd;
+      text-align: center;
+    }
+    .context_menu ul {
+      padding: 0px;
+      margin: 0px; 
+    }
+    .context_menu ul li{
+      list-style: none;
+      line-height: 30px;
+      text-align: center;
+      border-bottom: 1px solid #ddd;
+    }
+    .context_menu ul li:hover {
+      background-color: LightGrey;
+      color: #fff;
+    }
+</style>
+
+<div class="context_menu">
+    <header></header>
+    <ul>
+        <li>编辑原文</li>
+        <li>编辑注释</li>
+    </ul>
+</div>
+
+<script type = "text/javascript">
+    //首先屏蔽到浏览器自带的右键功能
+    document.oncontextmenu = function(){
+        return false;
+    };
+    //点击鼠标三键
+    //$(document).mousedown(function(event){
+    function context_menu(event, menu){
+        //1是左键；2是中间键；3是右键
+        let key = event.which;
+        if(key == 3){
+            var x = event.clientX; //x坐标
+            var y = event.clientY; //y坐标
+            //获取context_menu的长宽
+            var context_menuHeight = $('.context_menu').height();
+            var context_menuWidth = $('.context_menu').width();
+            //获取浏览器的可见长宽
+            var clintHeight = getClientHeight();
+            var clintWidth = getClientWidth();
+            //判断
+            if(context_menuHeight + y >= clintHeight){
+                y = clintHeight - context_menuHeight - 8;
+            }
+            if(context_menuWidth + x >= clintWidth){
+                x = clintWidth - context_menuWidth - 8;
+            }
+            //之前必须要绝对定位才行
+            $('.context_menu').html(menu);
+            $('.context_menu').show().css({left:x,top:y});
+        } else {
+          $('.context_menu').hide();
+        }
+    }
+
+    //点击空白隐藏鼠标右键
+    //$(document).click(function(){ $(".context_menu").hide(); });
+    $(document).keypress(function() { $(".context_menu").hide(); });
+
+    // 浏览器的可见高度
+    function getClientHeight() {
+        let clientHeight = 0;
+        if (document.body.clientHeight && document.documentElement.clientHeight) {
+            clientHeight = (document.body.clientHeight < document.documentElement.clientHeight) ? document.body.clientHeight: document.documentElement.clientHeight;
+        } else {
+            clientHeight = (document.body.clientHeight > document.documentElement.clientHeight) ? document.body.clientHeight: document.documentElement.clientHeight;
+        }
+        return clientHeight;
+    }
+    // 浏览器的可见宽度
+    function getClientWidth() {
+        let clientWidth = 0;
+        if (document.body.clientWidth && document.documentElement.clientWidth) {
+            clientWidth = (document.body.clientWidth < document.documentElement.clientWidth) ? document.body.clientWidth: document.documentElement.clientWidth;
+        } else {
+            clientWidth = (document.body.clientWidth > document.documentElement.clientWidth) ? document.body.clientWidth: document.documentElement.clientWidth;
+        }
+        return clientWidth;
+    }
+</script>
+

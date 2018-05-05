@@ -5,6 +5,7 @@ __author__ = ['"shuguangbo" <1262448230@qq.com>']
 
 import tornado.web
 from jinja2 import Environment, FileSystemLoader, TemplateNotFound
+import json
  
 class TemplateRendering(object):
   """
@@ -30,12 +31,12 @@ class BaseHandler(tornado.web.RequestHandler, TemplateRendering):
         pass
     # does not work
     def get_json(self):
-        args = json_decode(self.request.body)
+        args = json.load(self.request.body)
         return args if args else None
 
     # does not work
     def get_json_argument(self, name, default = None):
-        args = json_decode(self.request.body)
+        args = json.load(self.request.body)
         name = to_unicode(name)
         if name in args:
             return args[name]

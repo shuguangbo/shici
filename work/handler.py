@@ -36,7 +36,8 @@ class restGetWorkHandler(BaseHandler):
         super(restGetWorkHandler, self).__init__(application, request, **kwargs)
     @tornado.web.asynchronous
     def post(self, *args, **kwargs):
-        id = json.loads(self.get_argument("id", ""), encoding='utf-8')
+        id = self.get_argument("id", "")
+#        id = json.loads(self.get_argument("id", ""), encoding='utf-8')
         try :
             work = sc.get_work(id=id, type='json')
         except Exception as e:
@@ -56,7 +57,8 @@ class restSaveWorkHandler(BaseHandler):
     @tornado.web.asynchronous
     def post(self, *args, **kwargs):
         try :
-            work = json.loads(self.get_argument("work", ""), encoding='utf-8')
+            work = self.get_argument("work", "")
+#            work = json.loads(self.get_argument("work", ""), encoding='utf-8')
             ret = sc.save_work(work=work, type='json')
         except Exception as e:
             import traceback
@@ -74,7 +76,8 @@ class restDelWorkHandler(BaseHandler):
 
     @tornado.web.asynchronous
     def post(self, *args, **kwargs):
-        id = json.loads(self.get_argument("id", ""), encoding='utf-8')
+        id = self.get_argument("id", "")
+#        id = json.loads(self.get_argument("id", ""), encoding='utf-8')
         try :
             ret = sc.del_work(id=id)
         except Exception as e:
@@ -93,7 +96,8 @@ class restSearchWorkHandler(BaseHandler):
 
     @tornado.web.asynchronous
     def post(self, *args, **kwargs):
-        keywords = json.loads(self.get_argument("keywords", ""), encoding='utf-8')
+        keywords = self.get_argument("keywords", "")
+#        keywords = json.loads(self.get_argument("keywords", ""), encoding='utf-8')
 #        print "keywords - " + keywords
 
         if not keywords.strip():

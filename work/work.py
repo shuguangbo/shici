@@ -172,6 +172,7 @@ class Shici():
         """ 更新注释库 """
         for item in ['name', 'preface', 'lines'] :
             for index in range(0, len(work['comment'][item])) :
+                print "item: %s index: %d length: %d" % ( item, index, len(work['comment'][item][index]))
                 for num in range(0, len(work['comment'][item][index])) :
                     for key in work['comment'][item][index][num] :
                        if key in self.comment : continue

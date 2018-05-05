@@ -38,7 +38,7 @@ function search_work(obj) {
    }
 
     spinner_start();
-    $.post(url, {_xsrf:$.cookie('_xsrf'), keywords:JSON.stringify(keywords)}).done(function(data, status) {
+    $.post(url, {_xsrf:$.cookie('_xsrf'), keywords:keywords}).done(function(data, status) {
           work_set = JSON.parse(data);
           if ( work_set.length == 0 ) {
                obj.value = trans_text(obj.value + ' 没有匹配记录。');
@@ -80,7 +80,7 @@ function get_work(id) {
     }
 
     spinner_start();
-    $.post(url, {_xsrf:$.cookie('_xsrf'), id:JSON.stringify(id)}).done(function(data, status) {
+    $.post(url, {_xsrf:$.cookie('_xsrf'), id:id}).done(function(data, status) {
         work = JSON.parse(data);
         show_work_detail(work);
     }).fail(function(jqXHR, textStatus, errorThrown) {
@@ -94,7 +94,7 @@ function get_work(id) {
 function classic_work() {
     var url = "/v1/classicwork";
     spinner_start();
-    $.post(url, {_xsrf:$.cookie('_xsrf'), id:JSON.stringify("")}).done(function(data, status) {
+    $.post(url, {_xsrf:$.cookie('_xsrf'), id:""}).done(function(data, status) {
         work = JSON.parse(data);
         show_work_detail(work);
     }).fail(function(jqXHR, textStatus, errorThrown) {
@@ -232,7 +232,7 @@ template.helper('mark_shici', function(text, ptext, mark, pz) {
         default :
             html = text;
     }
-    return html; 
+    return html.trim(); 
 });
 
 // 模板辅助函数：生成百度百科链接
@@ -357,16 +357,16 @@ template.helper('indent', function(text) {
 {# 作品详细界面模版：内容主界面 _ 作品原文 各子项 #} 
 <script id="template_work_detail_body_zw" type="text/html">
 <% name.split('\n').forEach(function(item, index) { %>
-<div>
-  <span id="work_name_<%=# index %>" class="show_work_name"><%=#mark_shici(item, pname[index], mark, false)%> </span>
-  <span id="work_author_<%=# index %>" class="show_work_author"> <%=#mark_shici(author, pauthor[index], mark, false) %></span>
-</div>
-<% if ( !isblank(comment['name'][index]) ) { %>
-<div id='name_comment_<%=# index %>' class="show_work_comment" hidden>
-     <% var data = 'name' in comment?{comment:comment['name'][index],cnum:cnum}:{comment:[],cnum:cnum}; %>
-     <% include('template_comment_item', data) %>
-</div>
-<% } %>
+  <div>
+    <p id="work_name_<%=# index %>" class="show_work_name">《<%=#mark_shici(item, pname[index], mark, false)%>》</p>
+    <p id="work_author_<%=# index %>" class="show_work_author"> <%=#mark_shici(author, pauthor[index], mark, false) %></p>
+  </div>
+  <% if ( !isblank(comment['name'][index]) ) { %>
+    <div id='name_comment_<%=# index %>' class="show_work_comment" hidden>
+         <% var data = 'name' in comment?{comment:comment['name'][index],cnum:cnum}:{comment:[],cnum:cnum}; %>
+         <% include('template_comment_item', data) %>
+    </div>
+  <% } %>
 <% }) %>
 
 <% preface.split('\n').forEach(function(item, index) { %>
@@ -518,6 +518,13 @@ template.helper('indent', function(text) {
   justify-content: flex-start;
   align-items: center;
 }
+
+.wsri_card p {
+  width: 100%;
+  margin: 0px;
+  text-align: center;
+}
+
 .card_name {
   color: White;
   font-size: 20px;
@@ -590,10 +597,12 @@ template.helper('indent', function(text) {
 .show_work_name {
   font-size: 20px;
   color: White;
+  text-align: center;
 }
 .show_work_author {
   font-size: 18px;
   color: WhiteSmoke;
+  text-align: center;
 }
 .show_work_preface, .show_work_line, .show_work_comment {
   width: 100%;
@@ -607,6 +616,7 @@ template.helper('indent', function(text) {
   color: WhiteSmoke;
 }
 .show_work_line:hover {
+  font-weight: bold;
   background-color: WhiteSmoke;
   color: black;
 }

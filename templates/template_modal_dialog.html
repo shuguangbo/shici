@@ -1,12 +1,4 @@
 {# 模态框 - 作品详细信息显示和作品编辑容器 #}
-{#
-<div class="modal fade" id="workDetail" tabindex="-1" role="dialog" aria-labelledby="DialogLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div id="workdetailcontent" class="modal-content">
-        </div> 
-    </div> 
-</div> 
-#}
 <div id="modal" class="modal">
     <div id="modal_content" class="modal_content">
         <div class="modal_header"> </div>
@@ -16,12 +8,21 @@
 </div>
 
 <script>
+function hide_modal() {
+  $('#modal').css('display', 'none');
+}
+function show_modal() {
+  $('#modal').css('display', 'block');
+}
+
 $(document).ready(function() {
     $('#modal').on('md_show', function() {
-      this.style.display = "block";
+      $('#modal_content').animate({opacity:1}, 100, show_modal);
+      //this.style.display = "block";
     });
     $('#modal').on('md_close', function() {
-      this.style.display = "none";
+      $('#modal_content').animate({opacity:0}, 300, hide_modal);
+      //this.style.display = "none";
     });
 });
 </script>
@@ -34,7 +35,7 @@ $(document).ready(function() {
     position: fixed;
     left: 0;
     top: 0;
-    z-index: 1000;
+    z-index: 100;
     background-color: rgba(0,0,0,0.5);
     overflow: auto;
 }
@@ -44,13 +45,12 @@ $(document).ready(function() {
     justify-content: flex-start;
     align-items: center;
     width: 50%;
-    max-width: 50%;
+    max-width: 80%;
     max-height: 90%;
     margin: 50px auto;
     border-radius:5px;
     -webkit-animation: zoom 0.6s;
     animation: zoomin 0.6s;
-#    overflow: hidden;
 }
 @-webkit-keyframes zoomin{
     from {-webkit-transform: scale(0)}
@@ -85,7 +85,6 @@ $(document).ready(function() {
 .modal_body{
     width: 100%;
     font-size: 18px;
-#    overflow: auto;
 }
 .modal_footer{
     width: 100%;

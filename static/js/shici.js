@@ -3,10 +3,11 @@ const key_Enter = 13;
 const key_Clear = 12;
 const key_Delete = 46;
 const key_BackSpace = 8;
-const category = {'诗':['五言古诗','五言乐府','五言绝句','五言律诗','七言古诗','七言乐府','七言绝句','七言律诗',"其它"],'词':[],'文':[],'曲':[]};
+const category = {'诗':['五言古诗','五言乐府','五言绝句','五言律诗','七言古诗','七言乐府','七言绝句','七言律诗','风','雅','颂','其它'],'词':[],'文':[],'曲':[]};
 const g_chinese_char=/[\u3400-\u9FFF\uF900-\uFAFF]/;
 const g_nonchinese_char=/[^\u3400-\u9FFF\uF900-\uFAFF]/;
 const g_nonchinese_all=/[^\u3400-\u9FFF\uF900-\uFAFF]+/g;
+const REGNUM=/\d+/g;
 
 const g_linelen = 30;       // 显示输入允许最大字符数
 var spinner;
@@ -208,6 +209,7 @@ function show_tts_vendor()
 /* 在设置页面显示对应语音服务提供商的tts发音选项 */
 function display_dialect()
 {
+    let tts_vendor = localStorage.getItem('tts_vendor');
     if (( tts_vendor == 'tts_baidu' ) && ( localStorage.getItem('bddialect') === null )) {
         localStorage.setItem('bddialect', '0'); 
     } else if (localStorage.getItem('xfdialect') === null ) {
@@ -369,15 +371,17 @@ function remove_nonchinese(text) {
 function gen_pz_html(data) {
     let html = '';
     if ( data.text.length == 0 ) return html;
-    var pindex = 0;
+    let pindex = 0;
     for ( let index in data.text ) {
         if ( is_nonchinese_char(data.text[index]) ) {
-            html += ( index === 0 || is_nonchinese_char(data.text[index-1])) ? '' : '</ruby>' + data.text[index] ;
+            html += `${index == 0 || is_nonchinese_char(data.text[index-1]) ? '' : '</ruby>'}${data.text[index]}`;
             continue;
         }
-        html += ( index === 0 || is_nonchinese_char(data.text[index-1])) ? '<ruby>' : '' + data.text[index] + mark_pz(pindex, data) + ( index === data.text.length ? '</ruby>':'' );
+        html += `${index == 0 || is_nonchinese_char(data.text[index-1]) ? '<ruby>' : ''}${data.text[index]}${mark_pz(pindex, data)}${index == data.text.length ? '</ruby>':''}`;
         pindex += 1;
     }
+    console.log(data.text);
+    console.log(html);
     return html;
 }
 // 生成标记单个汉字平仄的HTML代码
@@ -394,12 +398,27 @@ function indent(text) {
 
 // 计算多行输入区需要显示的行数
 function count_rows(text) {
-    let row = text.split('\n').length;
+  let row = 1;
+  if ( typeof text == 'string' ) {
+    //console.log(`String[${text}]`);
+    row = text.split('\n').length;
     let count = 0;
     text.split('\n').forEach(function(item) {
         count += item.trim().length > g_linelen ? item.trim().length/g_linelen : 0;
     });
     row += count;
-    return row;
+  } else if ( text instanceof Array ) {
+    //console.log(`Array[${text.join(' ')}]`);
+    row = text.length > 1 ? text.length : 1;
+  } else {
+    //console.log("UNKNOWN type");
+  }
+ return row;
 }
 
+// GUID生成器
+const GUID=()=> {
+  const s4=()=> Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
+  return `${s4() + s4()}-${s4()}-${s4()}-${s4()}-${s4() + s4() + s4()}`;
+}
+const guid = GUID;

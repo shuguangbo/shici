@@ -18,15 +18,16 @@ class restGetPinyinHandler(BaseHandler):
         super(restGetPinyinHandler, self).__init__(application, request, **kwargs)
 
     def post(self, *args, **kwargs):
-        text = json.loads(self.get_argument("text", ""), encoding='utf-8')
         try :
+            text = self.get_argument("text", "")
+#            text = json.loads(self.get_argument("text", ""), encoding='utf-8')
             pinyin = self.pinyin(text)
         except Exception as e:
             import traceback
             stack = traceback.format_exc()
             logging.error("get pinyin failed - error:%s cause:%s"
                           % ( e, stack))
-            self.write_error(404, reason="Internal Error")
+            self.get_error_html(404, reason="Internal Error")
         else:
             self.write(pinyin)
 
@@ -40,7 +41,6 @@ class restGetPinyinHandler(BaseHandler):
 #        print "input: %d %s" % (text_length, text)
         ptext = {'duo_pinyin': pinyin(text, heteronym=True, errors=u'ignore'),
                'dan_pinyin': lazy_pinyin(text, style=pypinyin.TONE, errors=u'ignore') }
-#        str = json.dumps(pinyin(text, heteronym=True), ensure_ascii=False, encoding='utf-8')
         str = json.dumps(ptext, ensure_ascii=False, encoding='utf-8')
 #        print "output: %s" % str
         return str
@@ -50,8 +50,9 @@ class restGetCommentHandler(BaseHandler):
         super(restGetCommentHandler, self).__init__(application, request, **kwargs)
 
     def post(self, *args, **kwargs):
-        text = json.loads(self.get_argument("text", ""), encoding='utf-8')
         try :
+            text = self.get_argument("text", "")
+#            text = json.loads(self.get_argument("text", ""), encoding='utf-8')
             comment = self.comment(text)
         except Exception as e:
             import traceback
