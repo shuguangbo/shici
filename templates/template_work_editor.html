@@ -15,9 +15,8 @@ analyse: [{item:'编辑赏析', code:'wz'}]
 
 // 创建新作品入口
 function new_work() {
-    var work = {};
-    work = blank_work(); 
-    init_cache();
+    var work = blank_work(); 
+    init_cache(work);
     show_work_editor(work);
     editor_event_handler();
 }
@@ -34,7 +33,6 @@ function show_work_editor(work) {
   let param = set_param(work);
   let html = template('template_editor', param);
   $('#modal_content').html(trans_text(html));
-  //$('#modal_content').css('width', '80%');
   $('#modal').trigger('md_show');
   hide_wzylzsyw_container();
 }
@@ -42,7 +40,6 @@ function show_work_editor(work) {
 function hide_wzylzsyw_container() {
   // 缺省隐藏韵律、注释和译文编辑区
   ['.yl_container', '.zs_container','.yw_container'].forEach(function(item) {
-     //$('#modal_content').find(item).each(function(i,c) { $(c).hide(); });
      $(item).hide();
   });
   // 显示/隐藏文字输入框 不显示拼音的文字输出和输入同框因此一直显示
@@ -61,7 +58,7 @@ function save_new() {
         return;
     }
     spinner_start();
-    $.post(url, {_xsrf:$.cookie('_xsrf'), work:work}).done(function(data, status) {
+    $.post(url, {_xsrf:$.cookie('_xsrf'), work:JSON.stringify(work)}).done(function(data, status) {
         //console.log("data: \n" + data + "\nstatus: " + status);
         $('#modal').trigger('md_close');
     }).fail(function(jqXHR, textStatus, errorThrown) {
@@ -137,7 +134,6 @@ function init_cache(work) {
    // 清空缓存 
    for ( var key in prepo ) delete prepo[key]; 
    if ( ! work ) { 
-     // console.log("blank cache"); 
      return; 
    }
 
@@ -162,6 +158,20 @@ function restore_cache(dp=true) {
    var work = blank_work(dp);
    //work.id = prepo.id.trim().length?prepo.id.trim():md5(prepo.name.trim() + prepo.author.trim() + prepo.lines.trim());
    work.id = prepo.id.trim().length?prepo.id.trim():GUID();
+
+  ['name', 'author', 'preface', 'lines'].forEach(function(key) {
+    var text = '';
+    if (key in prepo && prepo[key].length ) {
+      for ( var index in prepo[key] ) {
+        text += prepo[key][index].text + "\n";
+        work[`p${key}`][index] = prepo[key][index].dan_pinyin;
+        if (dp) work[`dp${key}`][index] = prepo[key][index].duo_pinyin;
+      }
+    }
+    work[key] = text.trim();
+  });
+
+/*
    // 作品名称应该是没有换行，只是按统一风格处理
    var name = '';
    if ('name' in prepo && prepo.name.length ) {
@@ -200,6 +210,8 @@ function restore_cache(dp=true) {
        }
    }
    work['lines'] = lines.trim();
+*/
+
    ['type', 'category', 'tag', 'analyse', 'comment'].forEach(function(key, index) {
        work[key] = prepo[key];
    });
@@ -231,7 +243,6 @@ function blur(event, obj) {
  * 当在文字输入框中输入字符时触发此处理函数 - 框中无字符则清空拼音显示区域，如果输入区无变化则返回，否则向服务器获取拼音并显示在拼音显示区，如果是回车事件并且输入区是单行文本输入区则隐藏输入区
  */
 function key_pressed(event, obj) {
-    //console.log("Key pressed ...");
     let id = $(obj).attr('data_id'), uuid = obj.id, index = $(obj).attr('data_index');
     let show_py = $(obj).attr('data_show_py') == 'true' ? true : false;
     let show_zs = $(obj).attr('data_show_zs') == 'true' ? true : false;
@@ -253,9 +264,8 @@ function key_pressed(event, obj) {
         if (id == 'analyse') prepo['analyse'] = text; 
     }
 
-    /* 回车换新行 */
+    /* 回车换新行 - 正文和序言则插入新行 */
     if ((event.keyCode || event.which ) == key_Enter) {
-       //console.log("Enter Key pressed");
        let data = {uuid:uuid, id:id, index:index};
        //console.log(JSON.stringify(data));
        if ( id == 'lines' || id == 'preface' ) {
@@ -265,6 +275,7 @@ function key_pressed(event, obj) {
        }
     }
 }
+
 /*
  * 获取文字对应的拼音，并生成相应的HTML
  * 服务器返回的内容如下：
@@ -376,6 +387,7 @@ function append_comment(comment, obj) {
     comment.push(obj);
 }
 
+// 生成韵律
 function get_yl(data) {
     let id = param.id, uuid = param.uuid, index = param.index, text = param.text;
     let yldp_id = `#${uuid}.yl_dp`;
@@ -476,6 +488,7 @@ function upd_category(obj) {
     set_ylable(category);
 }
 
+// 判断是否需要显示韵律
 function set_ylable(category) {
   let ylable = pzable(category);
   //console.log(`ylable ${ylable}`);
@@ -673,7 +686,7 @@ function item_sub_container_event_handler(sub_container) {
           case 'wz':
             show = $(sub_container).find('.wz_container').find('.wz_ip_container')[0].style.display === 'none'?true:false;
             show_menu_item = $(sub_container).find('.wz_container').find('.wz_ip')[0].value.trim().length?true:false;
-            menu_item = show?cm.item:'隐藏输入';
+            menu_item = show?cm.item:'输入隐藏';
             break;
           case 'yl':
             show_menu_item = ylable;

@@ -57,8 +57,7 @@ class restSaveWorkHandler(BaseHandler):
     @tornado.web.asynchronous
     def post(self, *args, **kwargs):
         try :
-            work = self.get_argument("work", "")
-#            work = json.loads(self.get_argument("work", ""), encoding='utf-8')
+            work = json.loads(self.get_argument("work", ""), encoding='utf-8')
             ret = sc.save_work(work=work, type='json')
         except Exception as e:
             import traceback
