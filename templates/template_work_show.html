@@ -358,8 +358,8 @@ template.helper('indent', function(text) {
 <script id="template_work_detail_body_zw" type="text/html">
 <% name.split('\n').forEach(function(item, index) { %>
   <div>
-    <p id="work_name_<%=# index %>" class="show_work_name">《<%=#mark_shici(item, pname[index], mark, false)%>》</p>
-    <p id="work_author_<%=# index %>" class="show_work_author"> <%=#mark_shici(author, pauthor[index], mark, false) %></p>
+    <p><span id="work_name_<%=# index %>" class="show_work_name">《<%=#mark_shici(item, pname[index], mark, false)%>》</span>
+    <span id="work_author_<%=# index %>" class="show_work_author"> <%=#mark_shici(author, pauthor[index], mark, false) %></span></p>
   </div>
   <% if ( !isblank(comment['name'][index]) ) { %>
     <div id='name_comment_<%=# index %>' class="show_work_comment" hidden>
