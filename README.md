@@ -20,7 +20,7 @@ git clone https://github.com/shuguangbo/shici.git
 ### 安装方式
 * 网络服务版
 ```
-pip install -x requirements.txt
+pip install -r requirements.txt
 python shici.py
 ```
 * 文件版
