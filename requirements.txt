@@ -1,5 +1,5 @@
 tornado==3.0.0
-Jinja2==2.8
+Jinja2==2.11.3
 pypinyin==0.16.0
 jieba==0.38
 xlrd==1.0.0
