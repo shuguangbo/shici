@@ -1,4 +1,4 @@
-tornado==3.0.0
+tornado==6.3.2
 Jinja2==2.8
 pypinyin==0.16.0
 jieba==0.38
